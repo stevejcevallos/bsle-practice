@@ -47,3 +47,5 @@ int ssn_helper(void)
 
     return atoi(buffer);
 }
+
+char *
