@@ -9,7 +9,7 @@
 
 typedef enum
 {
-    menu = 0,
+    menu_code = 0,
     new_account = 1,
     view_account = 2,
     edit_account = 3,
@@ -31,18 +31,33 @@ typedef struct account_node_t
     struct account_node_t *next;
 } account_node_t;
 
+int menu(void)
+{
+    printf("\n \t\t\t CUSTOMER ACCOUNT BANKING MANAGEMENT SYSTEM\n\n");
+    printf("\n\n \t\t\t Bank Management Menu Page\n\n");
+    printf("The following commands are available for customer use: \n\n");
+    printf("Display Menu Page: 0\n");
+    printf("Create New Account: 1\n");
+    printf("View Account: 2\n");
+    printf("Edit Account: 3\n");
+    printf("See Account: 4\n");
+    printf("Erase Account: 5\n");
+    printf("Conduct Transaction: 6\n");
+    printf("Display Menu Page: 7\n");
+    return(1);
+}
 
 
 
 
 int main(int argc, char *argv[])
 {
-    puts("\nCUSTOMER ACCOUNT BANKING MANAGEMENT SYSTEM\n\n");
+    menu();
     // Execute Menu Command
     while(1)
     {
 
-        int command_code = menu;
+        int command_code = menu_code;
         printf("Please type a command:\n");
         int command_response = scanf("%d", &command_code);
         if(command_response == EOF)
@@ -57,9 +72,8 @@ int main(int argc, char *argv[])
         {
             switch (command_code)
             {
-                case menu:
-                    /* code */
-                    printf("Execute menu\n");
+                case menu_code:
+                    menu();
                     break;
                 case new_account:
                     printf("Create new account\n");
