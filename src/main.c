@@ -1,5 +1,5 @@
-#include "bank.h"
 #include "bank.c"
+#include "helper.c"
 
 int main(void)
 {
