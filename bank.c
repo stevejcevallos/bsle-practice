@@ -16,7 +16,7 @@ typedef enum
     see_account = 4,
     erase_account = 5,
     transact = 6,
-    exit = 7
+    exit_code = 7
 } bank_action_flags;
 
 typedef struct account_node_t
@@ -41,41 +41,58 @@ int main(int argc, char *argv[])
     // Execute Menu Command
     while(1)
     {
-        char *command = calloc(1, sizeof(char));
-        fgets(command,1, stdin);
-        int command_code = atoi(command);
 
-
-        switch (command_code)
+        int command_code = menu;
+        printf("Please type a command:\n");
+        int command_response = scanf("%d", &command_code);
+        if(command_response == EOF)
         {
-        case menu:
-            /* code */
-            break;
-        case new_account:
-            /* code */
-            break;
-        case view_account:
-            /* code */
-            break;
-        case edit_account:
-            /* code */
-            break;
-        case see_account:
-            /* code */
-            break;
-        case erase_account:
-            /* code */
-            break;
-        case transact:
-            /* code */
-            break;
-        case exit:
-            /* code */
-            break;
-        default:
-            break;
+            perror("Input failure\n");
         }
-        printf("Made through the switch;");
-        break;
+        if(command_response < 0)
+        {
+            perror("Unsuccessful execution");
+        }
+        else
+        {
+            switch (command_code)
+            {
+                case menu:
+                    /* code */
+                    printf("Execute menu\n");
+                    break;
+                case new_account:
+                    printf("Create new account\n");
+                    /* code */
+                    break;
+                case view_account:
+                    printf("View account\n");
+                    /* code */
+                    break;
+                case edit_account:
+                    printf("Edit account\n");
+                    /* code */
+                    break;
+                case see_account:
+                    printf("See account\n");
+                    /* code */
+                    break;
+                case erase_account:
+                    printf("Erase account\n");
+                    /* code */
+                    break;
+                case transact:
+                    printf("Conduct a transaction\n");
+                    /* code */
+                    break;
+                case exit_code:
+                    printf("Exit\n");
+                    /* code */
+                    break;
+                default:
+                    printf("Invalid command.\n");
+                    break;
+            }
+        }
     }
 }
