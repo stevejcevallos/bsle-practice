@@ -1,3 +1,6 @@
+#ifndef BANK_H
+#define BANK_H
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -8,6 +11,9 @@
 #define BUFFER_MAX_SIZE 256
 #define NAME_MAX_SIZE 60
 #define PHONE_SIZE 12
+
+#define SUCCESS 1
+#define FAIL 0
 
 typedef enum
 {
@@ -36,7 +42,16 @@ typedef struct account_node
     struct account_node *next;
 } account_node_t;
 
-typedef struct bank_accounts_t
+typedef struct bank_accounts
 {
     account_node_t *head;
 }bank_accounts_t;
+
+
+int check_username_exists(account_node_t *account, bank_accounts_t *account_list);
+int add_account(account_node_t *account, bank_accounts_t *account_list);
+char *get_info(char *command_prompt_str);
+account_node_t * make_new_account(bank_accounts_t *bank_accounts);
+bank_accounts_t *create_bank_accounts_list(void);
+int menu(void);
+#endif
