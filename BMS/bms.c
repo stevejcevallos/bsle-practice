@@ -12,7 +12,7 @@ view_list()
 void new_acc()
 {
     puts("Create New Account");
-
+    load_users();
 
 }
 
