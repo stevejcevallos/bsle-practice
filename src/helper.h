@@ -8,9 +8,10 @@
 #include <stdbool.h>
 #include <ctype.h>
 
-#define Name_Max 20
-#define DOB_Max 8
-#define Addr_Max 40
+#define SSN_Max     9
+#define Name_Max    20
+#define DOB_Max     8
+#define Addr_Max    80
 
 int get_ssn(void);
 

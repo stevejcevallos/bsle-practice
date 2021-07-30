@@ -32,12 +32,69 @@ user_t *new_acc(void)
     }
 
     new->ssn = get_ssn();
+    if (new->ssn == -1)
+    {
+        destroy_user(new);
+        return NULL;
+    }
     new->name = get_name();
     if (NULL == new->name)
     {
+        destroy_user(new);
         return NULL;
     }
+    new->dob = get_dob();
+    if (NULL == new->dob)
+    {
+        destroy_user(new);
+        return NULL;
+    }
+    
+}
 
+/**
+ * Destroy allocated user_t structure from stack
+ * @param user user_t structure
+ * @return 0 on success, -1 for errors
+ */
+int destroy_user(user_t *user)
+{
+    if (NULL == user)
+    {
+        return -1;
+    }
+
+    account_t *current = user->account;
+    account_t *temp;
+
+    if (NULL != user->name)
+    {
+        free(user->name);
+        user->name = NULL;
+    }
+
+    if (NULL != user->dob)
+    {
+        free(user->dob);
+        user->dob = NULL;
+    }
+
+    if (NULL != user->address)
+    {
+        free(user->address);
+        user->address = NULL;
+    }
+
+    if (NULL != current)
+    {
+        temp = current->next;
+        free(current);
+        current = temp;
+    }
+
+    free(user);
+    user = NULL;
+    return 0;
 }
 
 // With this function, you can view the customer’s banking information such as account number, name, address and phone number provided while creating the account.
