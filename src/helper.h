@@ -6,5 +6,14 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <ctype.h>
+
+#define Name_Max 20
+#define DOB_Max 8
+#define Addr_Max 40
+
+int get_ssn(void);
+
+char *get_name(void);
 
 #endif // OTHER _H_INCLUDED

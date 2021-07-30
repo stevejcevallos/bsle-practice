@@ -1,8 +1,9 @@
 #include "bank.c"
-#include "helper.c"
 
 int main(void)
 {
-    menu();
+    char* a = get_name();
+    printf("\n%s\n", a);
+    free(a);
     return 0;
 }

@@ -1,4 +1,5 @@
 #include "bank.h"
+#include "helper.c"
 
 // This function displays the menu or welcome screen to perform different banking activities mentioned below.
 void menu(void)
@@ -16,20 +17,27 @@ void menu(void)
 }
 
 // This function creates a new customer account. It asks for some  personal and banking details of the customer such as name, date of birth, citizenship number, address and phone number. You can enter the amount to deposit and choose one type of deposit account – saving, current, fixed for 1 year, fixed for 2 years or fixed for 3 years.
+
+/**
+ * Generate New Account
+ * @return user struct on success, NULL for errors
+ */
 user_t *new_acc(void)
 {
-    // Get SSN from user
-    int ssn = ssn_helper();
-    int 
-
-    printf("Type name: (First Middle Last) \n");
-
     user_t *new = malloc(sizeof(user_t));
     if (NULL == new)
     {
         perror("Memory Allocation");
         return NULL;
     }
+
+    new->ssn = get_ssn();
+    new->name = get_name();
+    if (NULL == new->name)
+    {
+        return NULL;
+    }
+
 }
 
 // With this function, you can view the customer’s banking information such as account number, name, address and phone number provided while creating the account.
