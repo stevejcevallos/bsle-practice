@@ -1,4 +1,4 @@
-#include "helper.h"
+#include "bank.h"
 
 /** 
  * Get SSN string and return SSN integer
@@ -264,4 +264,155 @@ char *get_address(void)
     address[Addr_Max] = '\0';
 
     return address;
+}
+
+/** 
+ * Get phone number from user and return the phone number
+ * @return address array on success, NULL for errors
+ */
+char *get_phone(void)
+{
+    char buffer[256];
+    char *ret;
+    int length;
+    int count = 0;
+    char *p_num;
+
+    while (true)
+    {
+        count = 0;
+        memset(buffer, '\0', 256);
+        printf("Type Phone Number: (10 digits)\n");
+        ret = fgets(buffer, 256, stdin);
+        length = strlen(buffer) - 1;
+
+        if (NULL != ret)
+        {
+            if (length != Phone_Max)
+            {
+                printf("Phone number length must be 10.\n");
+                continue;
+            }
+
+            for (int i = 0; i < length; i++)
+            {
+                if (isdigit(buffer[i]))
+                {
+                    count++;
+                }
+            }
+
+            if (count == length)
+            {
+                break;
+            }
+            else
+            {
+                printf("Input contains non-numeric value.\n");
+            }
+        }
+        else
+        {
+            printf("Command Line Input Error. Try again.\n");
+            return NULL;
+        }
+    }
+
+    p_num = calloc(1, Phone_Max + 1);
+    if (NULL == p_num)
+    {
+        perror("Memory Allocation");
+        return NULL;
+    }
+    memcpy(p_num, buffer, Phone_Max);
+    p_num[Phone_Max] = '\0';
+
+    return p_num;
+}
+
+/** 
+ * Get deposit account information from user 
+ * and generate the account structure
+ * @return account_t structure on success, NULL for errors
+ */
+account_t *new_account(void)
+{
+    char temp;
+    char buffer[256];
+    char *ret;
+    int length;
+    int count = 0;
+    account_t *new;
+
+    while (true)
+    {
+        printf("Type Account Type: (0: Saving, 1: Current, 2: Fixed_1yr 3: Fixed_2yr, 4: Fixed_3yr)\n");
+        temp = getchar();
+        if (temp)
+        {
+            if (temp - '0' < 0 || temp -'0' > 4)
+            {
+                printf("Invalid Option.\n");
+            }
+            else
+            {
+                break;
+            }
+        }
+        else
+        {
+            printf("Input is non-digit.\n");
+        }
+    }
+
+    while (true)
+    {
+        count = 0;
+        memset(buffer, '\0', 256);
+        printf("Type Balance of Account: (Max: 50 digits)\n");
+        ret = fgets(buffer, 256, stdin);
+        length = strlen(buffer) - 1;
+
+        if (NULL != ret)
+        {
+            if (length >= Bal_Max)
+            {
+                printf("Balance length must be less than 80.\n");
+                continue;
+            }
+
+            for (int i = 0; i < length; i++)
+            {
+                if (isdigit(buffer[i]))
+                {
+                    count++;
+                }
+            }
+
+            if (count == length)
+            {
+                break;
+            }
+            else
+            {
+                printf("Input contains non-numeric value.\n");
+            }
+        }
+        else
+        {
+            printf("Command Line Input Error. Try again.\n");
+            return NULL;
+        }
+    }
+
+    new = calloc(1, sizeof(account_t));
+    if (NULL == new)
+    {
+        return NULL;
+    }
+    new->acc_type = temp - '0';
+    new->balance = atoi(buffer);
+    new->next = NULL;
+
+    return new;
 }

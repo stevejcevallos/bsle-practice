@@ -6,6 +6,21 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <ctype.h>
+
+// Account Type
+#define Saving      0
+#define Current     1
+#define Fixed_One   2
+#define Fixed_Two   3
+#define Fixed_Three 4
+
+#define SSN_Max     9
+#define Name_Max    20
+#define DOB_Max     8
+#define Addr_Max    80
+#define Phone_Max   10
+#define Bal_Max     50
 
 // Account Type
 #define Saving      0
@@ -29,7 +44,7 @@ typedef struct user
     char *dob;      // MMDDYYYY Format
     int ssn;        // 9 fixed length number
     char *address;  // Max Length 40
-    int p_num;      // 10 fixed length number
+    char *p_num;    // 10 fixed length number
     struct account *account;    // Linked List of Accounts
 } user_t;
 

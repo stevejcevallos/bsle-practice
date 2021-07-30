@@ -49,7 +49,12 @@ user_t *new_acc(void)
         destroy_user(new);
         return NULL;
     }
-    
+    new->p_num = get_phone();
+    if (NULL == new->p_num)
+    {
+        destroy_user(new);
+        return NULL;
+    }
 }
 
 /**
