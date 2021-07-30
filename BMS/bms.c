@@ -18,7 +18,7 @@ void new_acc()
 
 void menu(void)
 {
-    int user_input;
+    int user_input = NULL;
 
     //Display the Welcome Screen
     puts("\n\t\t CUSTOMER ACCOUNT BANKING MANAGMENT SYSTEM \n");
@@ -32,6 +32,8 @@ void menu(void)
     puts("\t 7. Exit \n");
 
     printf("\t Enter your choice: ");
+
+    //Check if Scanf if working right
     scanf("%d", &user_input);
 
     //Checks to see if the input is valid
@@ -73,8 +75,11 @@ void menu(void)
     }
 }
 
-void main(void)
+int main()
 {
     // Runs the menu function
-    menu();
+    if((menu()) != NULL)
+    {
+
+    }
 }

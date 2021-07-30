@@ -12,8 +12,8 @@ void load_users()
 {
     linked_list_t * user_list = linked_list_new();
 
-    char * current_user = NULL;
-    char * input_data = NULL;
+    char current_user[MAX_SIZE] = NULL;
+    char current_user[MAX_SIZE] = NULL;
     char * current_token = NULL;
 
     FILE *fp;
@@ -37,6 +37,7 @@ void load_users()
 
         printf("%s", current_user);
 
+        /*
         current_token = strtok(current_user, "/");
 
         while(current_token != NULL)
@@ -44,5 +45,7 @@ void load_users()
             printf("%s \n", current_token);
             current_token = strtok(NULL,"/");
         }
+
+        */
     }
 }
