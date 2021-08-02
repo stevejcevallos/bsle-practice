@@ -39,12 +39,15 @@ bank_account_t *add_bank_account(bank_account_t *head, bank_account_t *new_accou
     }
     else
     {
+        printf("Head is not null\n");
         bank_account_t *temp_account = head;
-        while(temp_account->next)
+        bank_account_t *prev_account = NULL;
+        while(temp_account)
         {
+            prev_account = temp_account;
             temp_account = temp_account->next;
         }
-        temp_account->next = new_account;
+        prev_account->next = new_account;
     }
     return(head);
 }

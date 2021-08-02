@@ -9,7 +9,7 @@
 #define PHONE_SIZE 12
 
 
-int bank_account_num = 1;
+int bank_account_num = 0;
 
 int menu(void)
 {
@@ -61,6 +61,8 @@ int main(int argc, char *argv[])
 {
     // Initialize the bank_accounts_linked_list
     bank_account_t *bank_accounts = NULL;
+
+    char *filename = "bankaccounts.txt";
     menu();
     // Execute Menu Command
     int command_code = menu_code;
@@ -92,6 +94,7 @@ int main(int argc, char *argv[])
                     break;
                 case new_account_code:
                     printf("Create new account\n");
+                    bank_account_num++;
                     bank_account_t *new_account = create_bank_account(bank_account_num);
                     if(new_account)
                     {
@@ -100,7 +103,20 @@ int main(int argc, char *argv[])
                         // if both are successful then return success
                         // if they arent successful remove the entry from which ever failed
                         // and return failed to add bank account
-                        bank_accounts = add_bank_account(bank_accounts,new_account);
+                        if(bank_accounts == NULL)
+                        {
+                            bank_accounts = new_account;
+                        }
+                        else
+                        {
+                            bank_accounts = add_bank_account(bank_accounts,new_account);
+                            printf("This is the new acount: %d\n",bank_accounts->next->account_number);
+                        }
+                        int bank_write_success = write_account_to_file(filename,new_account);
+                        if (FAIL == bank_write_success)
+                        {
+                            perror("Unsuccessful account creation");
+                        }
                     }
                     break;
                 case view_account:

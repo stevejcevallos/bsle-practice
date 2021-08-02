@@ -1,30 +1,34 @@
 #include "../include/bank.h"
 #include "../include/file_ops.h"
+#include "../include/bank_accounts.h"
 
-int write_account_to_file(char *filename, account_node_t *account)
+int write_account_to_file(char *filename, bank_account_t *account)
 {
     int return_value = FAIL;
+    bank_account_t *temp = account;
     FILE *file;
-    file = fopen(filename,"a+");
+    file = fopen(filename,"w");
     if(NULL == file)
     {
         perror("Failed to open file\n");
     }
-    else if(account)
+    else
     {
-        int bytes_wrote = fprintf(file,"%d, %d, %s\n",account->account_number,
-        account->account_balance,account->ssn);
-        if(bytes_wrote != 0)
+        while(temp)
         {
+            int items_written = fwrite(temp, sizeof(bank_account_t), 1, file);
+            printf("This i sthe number if items written %d\n", items_written);
+            if(1 != items_written)
+            {
+                perror("Write to file failure\n");
+                return_value = FAIL;
+                break;
+            }
+            temp = temp->next;
             return_value = SUCCESS;
         }
-        else
-        {
-            perror("Failed to write all of account\n");
-        }
-        fclose(file);
-
     }
+    fclose(file);
     return(return_value);
 }
 
