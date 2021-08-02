@@ -26,5 +26,7 @@ bank_account_t *delete_bank_account(bank_account_t *head, int account_number);
 bank_account_t *edit_bank_account(bank_account_t *head, int account_number, char *new_address, char *new_phone_number);
 
 bank_account_t *transaction_bank_account(bank_account_t *head, int account_number, int transaction_type, int amount);
+int delete_bank_account_list(bank_account_t *head);
+int delete_node(bank_account_t *account_to_delete);
 int see(bank_account_t *head, int account_number);
 #endif

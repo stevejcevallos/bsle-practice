@@ -31,8 +31,7 @@ int menu(void)
 char *get_info(char *command_prompt_str)
 {
     char *new_username = NULL;
-    char buffer[BUFFER_MAX_SIZE];
-    memset(buffer, '\0',BUFFER_MAX_SIZE);
+    char buffer[BUFFER_MAX_SIZE] ={0};
 
     printf("Type in your %s: ", command_prompt_str);
     char * return_string = fgets(buffer,BUFFER_MAX_SIZE,stdin);
@@ -96,6 +95,11 @@ int main(int argc, char *argv[])
                     bank_account_t *new_account = create_bank_account(bank_account_num);
                     if(new_account)
                     {
+                        // add bank account to file
+                        // if that is good then add it to the linked list
+                        // if both are successful then return success
+                        // if they arent successful remove the entry from which ever failed
+                        // and return failed to add bank account
                         bank_accounts = add_bank_account(bank_accounts,new_account);
                     }
                     break;
@@ -104,28 +108,94 @@ int main(int argc, char *argv[])
                     int viewing_account_number = 0;
                     int van = scanf("%d", &viewing_account_number);
                     while((getchar() != '\n'));
-                    see(bank_accounts, viewing_account_number);
-
-                    /* code */
+                    if(van > 0)
+                    {
+                        see(bank_accounts, viewing_account_number);
+                    }
+                    else
+                    {
+                        perror("Invalid account number.\n");
+                    }
                     break;
                 case edit_account:
                     printf("Edit account\n");
                     /* code */
+                    int edit_account_number = 0;
+                    char new_address_buffer[BUFFER_MAX_SIZE] ={0};
+                    char new_phone_buffer[BUFFER_MAX_SIZE] ={0};
+
+                    printf("Enter Account Number: ");
+                    int edit_an = scanf("%d", &edit_account_number);
+                    while((getchar() != '\n'));
+
+                    printf("\n Enter new address: ");
+                    char *new_address = fgets(new_address_buffer,BUFFER_MAX_SIZE,stdin);
+                    printf("\n Enter new phone number: ");
+                    char *new_phone =fgets(new_phone_buffer,BUFFER_MAX_SIZE,stdin);
+
+                    if(new_phone && new_address && edit_an)
+                    {
+                        bank_accounts = edit_bank_account(bank_accounts, edit_account_number, new_address, new_phone);
+                    }
+                    else
+                    {
+                        perror("Invalid Account\n");
+                    }
                     break;
                 case see_account:
                     printf("See account\n");
-                    /* code */
+                    int see_account_number = 0;
+                    int san = scanf("%d", &see_account_number);
+                    while((getchar() != '\n'));
+                    if(san > 0)
+                    {
+                        see(bank_accounts, see_account_number);
+                    }
+                    else
+                    {
+                        perror("Invalid Account\n");
+                    }
                     break;
                 case erase_account:
                     printf("Erase account\n");
-                    /* code */
+                    int erase_account_number = 0;
+                    int ean = scanf("%d", &erase_account_number);
+                    while((getchar() != '\n'));
+                    if(ean > 0)
+                    {
+                        bank_accounts = delete_bank_account(bank_accounts, erase_account_number);
+                    }
+                    else
+                    {
+                        perror("Invalid Account\n");
+                    }
                     break;
                 case transact:
                     printf("Conduct a transaction\n");
-                    /* code */
+                    int account_number = 0;
+                    printf("Enter Account Number: ");
+                    int an = scanf("%d", &account_number);
+                    while((getchar() != '\n'));
+                    int transaction_type = 0;
+                    printf("\n Enter Transaction Type [0] Deposit [1] Withdrawl: ");
+                    an = scanf("%d", &transaction_type);
+                    while((getchar() != '\n'));
+                    int amount = 0;
+                    printf("\n Enter transaction amount: ");
+                    an = scanf("%d",&amount);
+                    while((getchar() != '\n'));
+                    if(an > 0)
+                    {
+                        bank_accounts = transaction_bank_account(bank_accounts, account_number, transaction_type, amount);
+                    }
+                    else
+                    {
+                        perror("Invalid Account\n");
+                    }
                     break;
                 case exit_code:
                     printf("Exit\n");
+                    delete_bank_account_list(bank_accounts);
                     /* code */
                     break;
                 default:

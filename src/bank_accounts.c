@@ -56,8 +56,15 @@ bank_account_t *delete_bank_account(bank_account_t *head, int account_number)
     {
         //we need to delete the head.
         bank_account_t *new_head = head->next;
-        free(head);
-        return(new_head);
+        int deleted = delete_node(head);
+        if(SUCCESS == deleted)
+        {
+            return(new_head);
+        }
+        else
+        {
+            return(head);
+        }
     }
     else
     {
@@ -78,7 +85,7 @@ bank_account_t *delete_bank_account(bank_account_t *head, int account_number)
         else
         {
             prev_account->next = temp_account->next;
-            free(temp_account);
+            delete_node(temp_account);
             return(head);
         }
     }
@@ -197,4 +204,45 @@ int see(bank_account_t *head, int account_number)
     printf("\n\n Number\tBalance\tname\taddress\tphone\account_type\n\n");
     printf("\n\n %d\t%d\t%s\t%s\t%s\t %s\n\n", current_account->account_number, current_account->account_balance, current_account->name, current_account->address, current_account->phone,current_account->account_type);
     return(SUCCESS);
+}
+
+int delete_node(bank_account_t *account_to_delete)
+{
+    int return_value = FAIL;
+    if(account_to_delete)
+    {
+        free(account_to_delete->ssn);
+        free(account_to_delete->name);
+        free(account_to_delete->username);
+        free(account_to_delete->password);
+        free(account_to_delete->address);
+        free(account_to_delete->phone);
+        free(account_to_delete->date_of_birth);
+        free(account_to_delete->account_type);
+        free(account_to_delete);
+        return_value = SUCCESS;
+    }
+    return(return_value);
+
+}
+
+int delete_bank_account_list(bank_account_t *head)
+{
+    int return_value = FAIL;
+    if(NULL == head)
+    {
+        return_value = SUCCESS;
+    }
+    else
+    {
+        bank_account_t *temp = NULL;
+        while(head)
+        {
+            temp = head->next;
+            delete_node(head);
+            head = temp;
+        }
+        return_value = SUCCESS;
+    }
+    return(return_value);
 }
