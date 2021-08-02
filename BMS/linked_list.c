@@ -5,21 +5,19 @@
 
 typedef struct _account
 {
-    int account_number;
+    char * account_number;
     char * account_type;
     int balance;
 } account;
 
 typedef struct _customer
 {
-    char * name;
-    int dob_month;
-    int dob_day;
-    int dob_year;
-    double citizen_num;
-    char * address;
-    int phone_number;
-    account customer_account;
+    char * first_name;
+    char * last_name;
+    char * dob;
+    char * citizen_num;
+    char * phone_number;
+    account * customer_account;
 } customer;
 
 
@@ -29,7 +27,7 @@ typedef struct _customer
  */
 typedef struct ll_node_t
 {
-    customer customer_data;
+    customer * customer_data;
     struct ll_node_t *next;
 } ll_node_t;
 
@@ -106,7 +104,7 @@ void linked_list_delete(linked_list_t **list){
     *list = NULL;
 }
 
-void * add_node(linked_list_t *list, customer data)
+void * add_node(linked_list_t *list, customer * data)
 {
     if(list == NULL)
     {
@@ -130,6 +128,8 @@ void * add_node(linked_list_t *list, customer data)
     }
 
     hold->next = new_data;
+
+    return 0;
 }
 
 /**

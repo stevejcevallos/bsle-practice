@@ -12,13 +12,15 @@ view_list()
 void new_acc()
 {
     puts("Create New Account");
-    load_users();
+    customer * new__customer_account;
+    new__customer_account = get_customer_info();
+    //load_users();
 
 }
 
 void menu(void)
 {
-    int user_input = NULL;
+    int user_input = 0;
 
     //Display the Welcome Screen
     puts("\n\t\t CUSTOMER ACCOUNT BANKING MANAGMENT SYSTEM \n");
@@ -78,8 +80,5 @@ void menu(void)
 int main()
 {
     // Runs the menu function
-    if((menu()) != NULL)
-    {
-
-    }
+    menu();
 }
