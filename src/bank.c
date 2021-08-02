@@ -1,7 +1,9 @@
 #include "bank.h"
 #include "helper.c"
 
-// This function displays the menu or welcome screen to perform different banking activities mentioned below.
+/**
+ * Print Menu
+ */
 void menu(void)
 {
     printf("CUSTOMER ACCOUNT BANKING MANAGEMENT SYSTEM\n\n");
@@ -16,45 +18,80 @@ void menu(void)
     printf("Enter your choice: \n\n");
 }
 
-// This function creates a new customer account. It asks for some  personal and banking details of the customer such as name, date of birth, citizenship number, address and phone number. You can enter the amount to deposit and choose one type of deposit account – saving, current, fixed for 1 year, fixed for 2 years or fixed for 3 years.
-
 /**
  * Generate New Account
  * @return user struct on success, NULL for errors
  */
 user_t *new_acc(void)
 {
+
+    char *ssn;
+    ssn = get_user_info(SSN);
+    if (NULL == ssn)
+    {
+        return NULL;
+    }
+    /*
+    Implement check if duplicated SSN in file
+    */
+
+    char *acc_type;
+    char *acc_bal;
     user_t *new = malloc(sizeof(user_t));
     if (NULL == new)
     {
         perror("Memory Allocation");
         return NULL;
     }
-
-    new->ssn = get_ssn();
-    if (new->ssn == -1)
-    {
-        destroy_user(new);
-        return NULL;
-    }
-    new->name = get_name();
+    new->ssn = atoi(ssn);
+    new->name = get_user_info(Name);
     if (NULL == new->name)
     {
         destroy_user(new);
         return NULL;
     }
-    new->dob = get_dob();
+    new->dob = get_user_info(DOB);
     if (NULL == new->dob)
     {
         destroy_user(new);
         return NULL;
     }
-    new->p_num = get_phone();
+    new->p_num = get_user_info(Phone);
     if (NULL == new->p_num)
     {
         destroy_user(new);
         return NULL;
     }
+    new->address = get_user_info(Address);
+    if (NULL == new->address)
+    {
+        destroy_user(new);
+        return NULL;
+    }
+    acc_type = get_user_info(Acc_Type);
+    if (NULL == acc_type)
+    {
+        destroy_user(new);
+        return NULL;
+    }
+    acc_bal = get_user_info(Acc_Bal);
+    if (NULL == acc_bal)
+    {
+        destroy_user(new);
+        return NULL;
+    }
+    new->account = calloc(1, sizeof(account_t));
+    if (NULL == new->account)
+    {
+        destroy_user(new);
+        return NULL;
+    }
+    new->account->acc_type = atoi(acc_type);
+    new->account->balance = atoi(acc_bal);
+    free(acc_type);
+    free(acc_bal);
+
+    return new;
 }
 
 /**
@@ -102,11 +139,77 @@ int destroy_user(user_t *user)
     return 0;
 }
 
-// With this function, you can view the customer’s banking information such as account number, name, address and phone number provided while creating the account.
-void view_list(void);
+/**
+ * Display User Information
+ * @param user user_t structure
+ * @return 0 on success, -1 for errors
+ */
+int view_list(user_t *user)
+{
+    if (NULL == user)
+    {
+        return -1;
+    }
+
+    printf("Name: %s\n", user->name);
+    printf("SSN: %d\n", user->ssn);
+    printf("DOB: %s\n", user->dob);
+    printf("Phone Number: %s\n", user->p_num);
+    printf("Address: %s\n", user->address);
+
+    account_t *temp = user->account;
+    int count = 1;
+    while (NULL != temp)
+    {
+        switch (temp->acc_type)
+        {
+            case Saving:
+                printf("Account %d type: Saving\n");
+                break;
+            case Current:
+                printf("Account %d type: Current\n");
+                break;
+            case Fixed_One:
+                printf("Account %d type: Fixed 1 Year\n");
+                break;
+            case Fixed_Two:
+                printf("Account %d type: Fixed 2 Year\n");
+                break;
+            case Fixed_Three:
+                printf("Account %d type: Fixed 3 Year\n");
+                break;
+            default:
+                printf("Account %d type: Unknown\n");
+                break;
+        }
+        printf("Account %d balance: %d\n", count, temp->balance);
+        count++;
+        temp = temp->next;
+    }
+
+    return 0;
+}
 
 // This function has been used for changing the address and phone number of a particular customer account.
-void edit(void);
+int edit(user_t *user, int option)
+{
+    if (NULL == user)
+    {
+        return -1;
+    }
+
+    switch (option)
+    {
+        case Name:
+            printf("Current Name: %s\n", user->name);
+            printf("Enter New Name: ");
+
+            break;
+        
+        default:
+            break;
+    }
+}
 
 // With this function, you can deposit and withdraw money to and from a particular customer account.
 void transact(void);

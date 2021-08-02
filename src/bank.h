@@ -22,12 +22,16 @@
 #define Phone_Max   10
 #define Bal_Max     50
 
-// Account Type
-#define Saving      0
-#define Current     1
-#define Fixed_One   2
-#define Fixed_Two   3
-#define Fixed_Three 4
+#define Name        0
+#define SSN         1
+#define DOB         2
+#define Phone       3
+#define Address     4
+#define Acc_Type    5
+#define Acc_Bal     6
+
+#define Success     0
+#define Error       -1
 
 // Account Structure
 typedef struct account
@@ -51,8 +55,8 @@ typedef struct user
 void menu(void);
 user_t *new_acc(void);
 int destroy_user(user_t *user);
-void view_list(void);
-void edit(void);
+int view_list(user_t *user);
+int edit(user_t *user, int option);
 void transact(void);
 void erase(void);
 void see(void);
