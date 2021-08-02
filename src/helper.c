@@ -33,14 +33,14 @@ int get_user_info_print1(int option)
     return 0;
 }
 
-int *name_validator(char *buffer, int length)
+int name_validator(char *buffer, int length)
 {
     int count = 0;
 
     if (length > Name_Max)
     {
         printf("Name length must be less than 20.\n");
-        return Error;
+        return ERR;
     }
 
     for (int i = 0; i < length; i++)
@@ -53,23 +53,23 @@ int *name_validator(char *buffer, int length)
 
     if (count == length)
     {
-        return Success;
+        return Suc;
     }
     else
     {
         printf("Input contains non-alphabetic value.\n");
-        return Error;
+        return ERR;
     }
 }
 
-int *ssn_validator(char *buffer, int length)
+int ssn_validator(char *buffer, int length)
 {
     int count = 0;
 
     if (length != SSN_Max)
     {
         printf("Citizenship number length must be 9.\n");
-        return Error;
+        return ERR;
     }
 
     for (int i = 0; i < SSN_Max; i++)
@@ -82,16 +82,16 @@ int *ssn_validator(char *buffer, int length)
 
     if (count == SSN_Max)
     {
-        return Success;
+        return Suc;
     }
     else
     {
         printf("Input contains non-numeric value.\n");
-        return Error;
+        return ERR;
     }
 }
 
-int *dob_validator(char *buffer, int length)
+int dob_validator(char *buffer, int length)
 {
     int count = 0;
     char day[2];
@@ -101,7 +101,7 @@ int *dob_validator(char *buffer, int length)
     if (length != DOB_Max)
     {
         printf("Name length must be 8.\n");
-        return Error;
+        return ERR;
     }
 
     for (int i = 0; i < length; i++)
@@ -122,27 +122,27 @@ int *dob_validator(char *buffer, int length)
             (atoi(day) > 0 || atoi(day) <= 31) &&
             (atoi(year) > 0))
         {
-            return Success;
+            return Suc;
         }
         
         printf("Invalid Dates.\n");
-        return Error;
+        return ERR;
     }
     else
     {
         printf("Input contains non-numeric value.\n");
-        return Error;
+        return ERR;
     }
 }
 
-int *phone_validator(char *buffer, int length)
+int phone_validator(char *buffer, int length)
 {
     int count = 0;
 
     if (length != Phone_Max)
     {
         printf("Phone number length must be 10.\n");
-        return Error;
+        return ERR;
     }
 
     for (int i = 0; i < length; i++)
@@ -155,23 +155,23 @@ int *phone_validator(char *buffer, int length)
 
     if (count == length)
     {
-        return Success;
+        return Suc;
     }
     else
     {
         printf("Input contains non-numeric value.\n");
-        return Error;
+        return ERR;
     }
 }
 
-int *address_validator(char *buffer, int length)
+int address_validator(char *buffer, int length)
 {
     int count = 0;
 
     if (length > Addr_Max)
     {
         printf("Address length must be less than 80.\n");
-        return Error;
+        return ERR;
     }
 
     for (int i = 0; i < length; i++)
@@ -189,41 +189,41 @@ int *address_validator(char *buffer, int length)
 
     if (count == length)
     {
-        return Success;
+        return Suc;
     }
     else
     {
         printf("Input contains invalid address value.\n");
-        return Error;
+        return ERR;
     }
 }
 
-int *acc_type_validator(char *buffer, int length)
+int acc_type_validator(char *buffer, int length)
 {
     if (length != 1)
     {
         printf("Account type length must be 1.\n");
-        return Error;
+        return ERR;
     }
 
-    char temp = buffer[0];
+    char temp = buffer[0] - '0';
 
-    if ((temp - '0') >= 0 && (temp -'0') <= 4)
+    if (0 <= temp <= 4)
     {
-        return Success;
+        return Suc;
     }
 
     printf("Invalid Option.\n");
-    return Error;
+    return ERR;
 }
 
-int *acc_bal_validator(char *buffer, int length)
+int acc_bal_validator(char *buffer, int length)
 {
     int count = 0;
     if (length >= Bal_Max)
     {
         printf("Balance length must be less than 50.\n");
-        return Error;
+        return ERR;
     }
 
     for (int i = 0; i < length; i++)
@@ -236,12 +236,12 @@ int *acc_bal_validator(char *buffer, int length)
 
     if (count == length)
     {
-        return Success;
+        return Suc;
     }
     else
     {
         printf("Input contains non-numeric value.\n");
-        return Error;
+        return ERR;
     }
 }
 
@@ -249,7 +249,7 @@ char *get_user_info(int option)
 {
     char buffer[256];
     int print_ret;
-    int fgets_ret;
+    char *fgets_ret = NULL;
     int val_ret;
     int length;
     int ssn;
@@ -257,11 +257,11 @@ char *get_user_info(int option)
 
     while (true)
     {
-        memset(buffer, 0, 256);
+        memset(buffer, '\0', 256);
         print_ret = get_user_info_print1(option);
-        if (print_ret == Error)
+        if (print_ret == ERR)
         {
-            return Error;
+            return NULL;
         }
 
         fgets_ret = fgets(buffer, 256, stdin);
@@ -272,31 +272,32 @@ char *get_user_info(int option)
             switch (option)
             {
                 case Name:
-                    val_ret = name_validator(&buffer, length);
+                    val_ret = name_validator(buffer, length);
                     break;
                 case SSN:
-                    val_ret = ssn_validator(&buffer, length);
+                    val_ret = ssn_validator(buffer, length);
                     break;
                 case DOB:
-                    val_ret = dob_validator(&buffer, length);
+                    val_ret = dob_validator(buffer, length);
                     break;
                 case Phone:
-                    val_ret = phone_validator(&buffer, length);
+                    val_ret = phone_validator(buffer, length);
                     break;
                 case Address:
-                    val_ret = address_validator(&buffer, length);
+                    val_ret = address_validator(buffer, length);
                     break;
                 case Acc_Type:
-                    val_ret = acc_type_validator(&buffer, length);
+                    val_ret = acc_type_validator(buffer, length);
                     break;
                 case Acc_Bal:
-                    val_ret = acc_bal_validator(&buffer, length);
+                    val_ret = acc_bal_validator(buffer, length);
+                    break;
                 default:
                     printf("Unknown Option.\n");
-                    return Error;
+                    return NULL;
             }
 
-            if (val_ret == Success)
+            if (val_ret == Suc)
             {
                 break;
             }
@@ -304,7 +305,7 @@ char *get_user_info(int option)
         else
         {
             printf("Scanf Malfunction. Try again.\n");
-            return Error;
+            return NULL;
         }
     }
 

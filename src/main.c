@@ -2,9 +2,19 @@
 
 int main(void)
 {
-    account_t* a = new_account();
-    printf("\n%d\n", a->acc_type);
-    printf("\n%d\n", a->balance);
-    free(a);
-    return 0;
+    user_t* a = new_acc();
+    if (NULL == a)
+    {
+        return ERR;
+    }
+    int ret = view_list(a);
+    destroy_user(a);
+
+    if (ret == ERR)
+    {
+        return ERR;
+    }
+    
+
+    return Suc;
 }

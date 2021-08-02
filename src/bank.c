@@ -43,7 +43,11 @@ user_t *new_acc(void)
         perror("Memory Allocation");
         return NULL;
     }
+    
     new->ssn = atoi(ssn);
+    free(ssn);
+    ssn = NULL;
+
     new->name = get_user_info(Name);
     if (NULL == new->name)
     {
@@ -87,9 +91,11 @@ user_t *new_acc(void)
         return NULL;
     }
     new->account->acc_type = atoi(acc_type);
-    new->account->balance = atoi(acc_bal);
+    new->account->balance = strtoull(acc_bal, NULL, 10);
     free(acc_type);
+    acc_type = NULL;
     free(acc_bal);
+    acc_bal == NULL;
 
     return new;
 }
@@ -127,6 +133,12 @@ int destroy_user(user_t *user)
         user->address = NULL;
     }
 
+    if (NULL != user->p_num)
+    {
+        free(user->p_num);
+        user->p_num = NULL;
+    }
+
     if (NULL != current)
     {
         temp = current->next;
@@ -151,11 +163,12 @@ int view_list(user_t *user)
         return -1;
     }
 
-    printf("Name: %s\n", user->name);
-    printf("SSN: %d\n", user->ssn);
-    printf("DOB: %s\n", user->dob);
-    printf("Phone Number: %s\n", user->p_num);
-    printf("Address: %s\n", user->address);
+    printf("***** User Information *****\n");
+    printf("1. Name: %s\n", user->name);
+    printf("2. SSN: %d\n", user->ssn);
+    printf("3. DOB: %s\n", user->dob);
+    printf("4. Phone Number: %s\n", user->p_num);
+    printf("5. Address: %s\n", user->address);
 
     account_t *temp = user->account;
     int count = 1;
@@ -164,25 +177,25 @@ int view_list(user_t *user)
         switch (temp->acc_type)
         {
             case Saving:
-                printf("Account %d type: Saving\n");
+                printf("%d. Account %d type: Saving\n", count + 5, count);
                 break;
             case Current:
-                printf("Account %d type: Current\n");
+                printf("%d. Account %d type: Current\n", count + 5, count);
                 break;
             case Fixed_One:
-                printf("Account %d type: Fixed 1 Year\n");
+                printf("%d. Account %d type: Fixed 1 Year\n", count + 5, count);
                 break;
             case Fixed_Two:
-                printf("Account %d type: Fixed 2 Year\n");
+                printf("%d. Account %d type: Fixed 2 Year\n", count + 5, count);
                 break;
             case Fixed_Three:
-                printf("Account %d type: Fixed 3 Year\n");
+                printf("%d. Account %d type: Fixed 3 Year\n", count + 5, count);
                 break;
             default:
-                printf("Account %d type: Unknown\n");
+                printf("%d. Account %d type: Unknown\n", count + 5, count);
                 break;
         }
-        printf("Account %d balance: %d\n", count, temp->balance);
+        printf("%d. Account %d balance: $%ld\n", count + 6, count, temp->balance);
         count++;
         temp = temp->next;
     }

@@ -30,14 +30,14 @@
 #define Acc_Type    5
 #define Acc_Bal     6
 
-#define Success     0
-#define Error       -1
+#define Suc         0
+#define ERR        -1
 
 // Account Structure
 typedef struct account
 {
     int acc_type;
-    int balance;
+    uint64_t balance;
     struct account *next;
 } account_t;
 
