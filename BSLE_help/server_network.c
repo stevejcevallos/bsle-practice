@@ -15,29 +15,48 @@
 
 /**
  * @brief Recieve Messages byte by byte from any connections
+ * and checks the last byte to see if it is a NULL BYTE
  *
  * @param fd is the accepted socket
  * @param buffer is the caracter * with the message being recieved
- * @param buffer_size is the isze of the expected message
+ * @param buffer_size is the size of the expected message
  *
  * @return: 0 is a Sucessful connections, -1 is Failed connection
 */
 static bool get_message(int fd, char *buffer, size_t *buffer_size){
 
-    char *spot = buffer;
+    char * message = buffer;
     size_t count = 0;
-    while(count < *buffer_size && recv(fd, spot, 1, 0) == 1)
+    while(count < *buffer_size && recv(fd, message, 1, 0) == 1)
     {
         count++;
-        if ('\0' == *spot)
+        if ('\0' == *message)
         {
             *buffer_size = count;
             return true;
         }
-        spot++;
+        message++;
     }
 
+    printf("buffer is |%s|\n", buffer);
+    printf("message is |%s|\n", message);
+    printf("MY SIZE: %ld \n", count);
     return false;
+
+}
+
+/**
+ * @brief Signal handler
+ *
+ * @param fd is the accepted socket
+ * @param buffer is the caracter * with the message being recieved
+ * @param buffer_size is the size of the expected message
+ *
+ * @return: 0 is a Sucessful connections, -1 is Failed connection
+*/
+void handle_sigint(int signal)
+{
+
 }
 
 int set_up_server_socket(void)
@@ -137,9 +156,10 @@ int main()
             return -1;
         }
 
-        /***************** CHANGE CLIENT MESSAGE SIZE BASED ON PROJECT ****************
-        size_t client_response_size = 256;
-        char client_response[256] = {0};
+        /***************** CHANGE CLIENT MESSAGE SIZE BASED ON PROJECT ****************/
+        // Curently get_messages checks if the last value is a null byte
+        size_t client_response_size = 65535;
+        char client_response[65535] = {0};
 
         //Calls the get message Function to read in bit by bit
         if(get_message(client_socket, client_response, &client_response_size) == false)
@@ -149,8 +169,8 @@ int main()
             return -1;
         }
 
-        printf("MESSAGE: \t %s", client_response);
-        */
+        printf("MESSAGE: %s \n", client_response);
+        printf("SIZE: %ld \n", client_response_size);
     }
 
 }
