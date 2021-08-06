@@ -7,11 +7,34 @@
 #include <sys/types.h>
 #include <stdbool.h>
 #include <unistd.h>
+#include <signal.h>
+#include <fcntl.h>
+#include <errno.h>
 
 
 #define PORT_NUM 2000
 #define MAX_CLIENTS 20
 
+static volatile int running = 1;
+
+/**
+ * @brief Signal handler
+ *
+ * @param fd is the accepted socket
+ * @param buffer is the caracter * with the message being recieved
+ * @param buffer_size is the size of the expected message
+ *
+ * REF: https://stackoverflow.com/questions/4217037/catch-ctrl-c-in-c
+ *
+ * @return: None
+*/
+void signal_handler(int sig)
+{
+    if(sig == SIGINT)
+    {
+        running = 0;
+    }
+}
 
 /**
  * @brief Recieve Messages byte by byte from any connections
@@ -46,62 +69,70 @@ static bool get_message(int fd, char *buffer, size_t *buffer_size){
 }
 
 /**
- * @brief Signal handler
+ * @brief Test the given functions/value return values, prints error message on failue
  *
- * @param fd is the accepted socket
- * @param buffer is the caracter * with the message being recieved
- * @param buffer_size is the size of the expected message
+ * @param check_this the function or value to complete due to critical operations
+ * @param error_msg message to display before returning value
+ * @param value is the value to test for
  *
- * @return: 0 is a Sucessful connections, -1 is Failed connection
+ *
+ * @return: function return operation on sucess, -1 on failue
 */
-void handle_sigint(int signal)
+int check_functionality(int check_this, char * error_msg, int value)
 {
-
+    if(check_this == value)
+    {
+        perror(error_msg);
+        exit(EXIT_FAILURE);
+    }
+    return check_this;
 }
 
+/**
+ * @brief Sets up the server Socket with all the correct values
+ *
+ * @param None
+ *
+ * REF: https://jameshfisher.com/2017/04/05/set_socket_nonblocking/
+ *
+ * @return: Int value with the socket connection, or -1 on failue
+*/
 int set_up_server_socket(void)
 {
     //Socket Varaibles
-    int server_socket;
+    int server_socket = 0;
+    int flags = 0;
     int opt_val = 1;
 
-    //Structure for the sending and recving address
-    struct sockaddr_in server_addr = {0};
-
     //Creating the TCP Socket to Connect to the Server
-    if((server_socket = socket(AF_INET, SOCK_STREAM, 0)) < 0)
-    {
-        puts("In server_network.c Failed to set the Network Socket ");
-    }
+    server_socket = check_functionality(socket(AF_INET, SOCK_STREAM, 0),
+        "In server_network.c Failed to set the Network Socket ", -1);
 
-    //Setting the Socket family to IPv4 and Setting specified Port for server to be 2000
+    //Set Server to Non-Blocking
+    flags = check_functionality(fcntl(server_socket, F_GETFL, 0),
+        "In server_network.c Failed to get the flags on Socket", -1);
+
+    check_functionality(fcntl(server_socket, F_SETFL, flags | O_NONBLOCK),
+        "In server_network.c Failed to set socket as Non-Blocking", -1);
+
+
+    //Setting the Server Socket family to IPv4 and Setting specified Port for server to be 2000
+    struct sockaddr_in server_addr = {0};
     server_addr.sin_family = AF_INET;
     server_addr.sin_port = htons(PORT_NUM);
     server_addr.sin_addr.s_addr = INADDR_ANY;
 
     //Setting the Socket OPTs to the apporpriate setting to reuse the Network
-    if((setsockopt(server_socket, SOL_SOCKET, SO_REUSEADDR, &opt_val, sizeof(opt_val))) < 0)
-    {
-        puts("In server_network.c Failed to set socket opt");
-        close(server_socket);
-        return -1;
-    }
+    check_functionality(setsockopt(server_socket, SOL_SOCKET, SO_REUSEADDR, &opt_val, sizeof(opt_val)),
+        "In server_network.c Failed to set socket opt", -1);
 
     //Bind the specified socket to the created Scoket Addr
-    if(bind(server_socket, (struct sockaddr *) &server_addr, sizeof(server_addr)) < 0)
-    {
-        puts("In server_network.c  Failed to Bind the Network");
-        close(server_socket);
-        return -1;
-    }
+    check_functionality(bind(server_socket, (struct sockaddr *) &server_addr, sizeof(server_addr)),
+        "In server_network.c  Failed to Bind the Network", -1);
 
     //Beginning to Listen for Pythonic TCP Connections
-    if(listen(server_socket, MAX_CLIENTS) == -1)
-    {
-        puts("In server_network.c  Failed to Listen to Any Connections");
-        close(server_socket);
-        return -1;
-    }
+    check_functionality(listen(server_socket, MAX_CLIENTS),
+        "In server_network.c  Failed to Listen to Any Connections", -1);
 
     puts("Server Established");
 
@@ -117,17 +148,21 @@ int main()
     int client_socket;
     struct sockaddr_in client_addr = {0};
     socklen_t client_len = 0;
-    int server_socket = set_up_server_socket();
-    if(server_socket == -1)
+
+    int server_socket = check_functionality(set_up_server_socket(),
+        "In server_network.c Failed to Set Up Server", -1);
+
+    //Signal handler
+    if(signal(SIGINT, signal_handler) ==  SIG_ERR)
     {
-        puts("In server_network.c Failed to Set Up Server");
+        puts("In server_network.c Signal handler did not work");
         close(server_socket);
         return -1;
     }
 
     //Keeps the Server Open to accept connections
     //***********CHANGE TO CLOSE EVERYTHING AT A SIGINT *******
-    while(1)
+    while(running)
     {
         puts("Listening for New Connections");
         char client_ip[INET_ADDRSTRLEN];
@@ -136,9 +171,14 @@ int main()
         client_socket = accept(server_socket, (struct sockaddr *) &client_addr, &client_len);
         if(client_socket < 0)
         {
-            puts("In server_network.c  Failed to Accept Connections from Clients");
-            close(server_socket);
-            return -1;
+            //Checks if the socket is just  being blocked
+            if(errno != EWOULDBLOCK)
+            {
+                puts("In server_network.c  Failed to Accept Connections from Clients");
+                close(server_socket);
+                return -1;
+            }
+            continue;
         }
         else
         {
@@ -172,5 +212,6 @@ int main()
         printf("MESSAGE: %s \n", client_response);
         printf("SIZE: %ld \n", client_response_size);
     }
+    puts("Closing Connection");
 
 }
