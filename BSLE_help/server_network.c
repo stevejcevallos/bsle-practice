@@ -213,5 +213,6 @@ int main()
         printf("SIZE: %ld \n", client_response_size);
     }
     puts("Closing Connection");
-
+    close(server_socket);
+    exit(EXIT_SUCCESS);
 }
