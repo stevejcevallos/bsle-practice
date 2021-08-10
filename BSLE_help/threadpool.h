@@ -1,6 +1,10 @@
+#ifndef __TPOOL_H__
+#define __TPOOL_H__
+
 #include <stdio.h>
 #include <pthread.h>
 #include <stdbool.h>
+#include <stdlib.h>
 
 //REF: https://nachtimwald.com/2019/04/12/thread-pool-in-c/
 
@@ -27,6 +31,18 @@ typedef struct treadpool
 }threadpool_t;
 
 /**
+ * @brief Test the given functions/value return values to equal, prints error message on failue
+ *
+ * @param check_this the function or value to complete due to critical operations
+ * @param error_msg message to display before returning value
+ * @param value is the value to test for
+ *
+ *
+ * @return: function return operation on sucess, -1 on failue
+*/
+int check_functionality(int check_this, char * error_msg, int value);
+
+/**
  * @brief Creates a Threadpool work object to be places in the threadpool queue
  *
  * @param func function to execute
@@ -42,7 +58,7 @@ static tpool_work_t * tpool_work_create(thread_func_t func, void *arg);
  * @param work Job to destroy
  * @return None
  */
-static void tpool_work_destroy(tpool_work_t *work);
+static int tpool_work_destroy(tpool_work_t *work);
 
 /**
  * @brief Retrives a job from the threadpool job linked list and handles the list
@@ -75,7 +91,7 @@ threadpool_t *tpool_create(size_t num);
  * @param pool to destroy
  * @return NULL if failed
  */
-void tpool_destroy(threadpool_t *pool);
+int tpool_destroy(threadpool_t *pool);
 
 /**
  * @brief Adding work to the linked list of work to complete, notifies threads of work
@@ -96,3 +112,5 @@ bool tpool_add_work(threadpool_t *pool, thread_func_t func, void *args);
  * @return NULL of failure
  */
 void tpool_wait(threadpool_t *pool);
+
+#endif
