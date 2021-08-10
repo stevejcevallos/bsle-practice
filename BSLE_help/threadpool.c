@@ -125,7 +125,7 @@ static void * tpool_worker(void *args)
                 "Failed to Unlock Mutex", 0);
     }
 
-    pool->thread_count--;
+    pool->working_threads_count--;
     check_functionality(pthread_cond_signal(&(pool->no_threads_processing)),
             "Failed to Signal no threads processing", 0);
 
@@ -152,6 +152,7 @@ threadpool_t *tpool_create(size_t num)
     }
 
     pool->thread_count = num;
+    pool->working_threads_count = num;
     pool->threads = calloc(num, sizeof(pthread_t));
     if(pool->threads == NULL)
     {
@@ -213,15 +214,21 @@ int tpool_destroy(threadpool_t *pool)
 
     tpool_wait(pool);
 
+        puts("B");
+        printf("TC: %ld", pool->thread_count);
+
     for(size_t index = 0; index < pool->thread_count; index++)
     {
+        puts("J");
         check_functionality(pthread_join(pool->threads[index], NULL),
             "Failed to Join Threads", 0);
+
     }
 
     if(pool->threads)
     {
         free(pool->threads);
+        pool->threads = NULL;
 
         check_functionality(pthread_mutex_destroy(&(pool->work_lock)),
             "Failed to destroy the mutex", 0);
@@ -232,6 +239,7 @@ int tpool_destroy(threadpool_t *pool)
     }
 
     free(pool);
+    pool = NULL;
     return 0;
 }
 
@@ -286,7 +294,7 @@ void tpool_wait(threadpool_t *pool)
     while (1)
     {
         if((!pool->shutdown && pool->work_count != 0) ||
-            (pool->shutdown && pool->thread_count != 0))
+            (pool->shutdown && pool->working_threads_count != 0))
             {
                 check_functionality(pthread_cond_wait(&(pool->no_threads_processing), &(pool->work_lock)),
                 "Failed to make it wait", 0);

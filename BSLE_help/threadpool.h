@@ -27,6 +27,7 @@ typedef struct treadpool
     pthread_cond_t no_threads_processing;
     size_t work_count;
     size_t thread_count;
+    size_t working_threads_count;
     bool shutdown;
 }threadpool_t;
 
