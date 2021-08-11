@@ -214,12 +214,8 @@ int tpool_destroy(threadpool_t *pool)
 
     tpool_wait(pool);
 
-        puts("B");
-        printf("TC: %ld", pool->thread_count);
-
     for(size_t index = 0; index < pool->thread_count; index++)
     {
-        puts("J");
         check_functionality(pthread_join(pool->threads[index], NULL),
             "Failed to Join Threads", 0);
 
