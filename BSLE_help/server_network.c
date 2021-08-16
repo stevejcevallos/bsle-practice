@@ -159,12 +159,13 @@ int main()
         close(server_socket);
         return -1;
     }
+    puts("Listening for New Connections");
 
     //Keeps the Server Open to accept connections
     //***********CHANGE TO CLOSE EVERYTHING AT A SIGINT *******
     while(running)
     {
-        puts("Listening for New Connections");
+
         char client_ip[INET_ADDRSTRLEN];
 
         //Accepts Connections that are incomming, Prints IP with valid connection
