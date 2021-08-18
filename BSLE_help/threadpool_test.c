@@ -20,7 +20,7 @@ void worker(void *arg)
         usleep(100000);
 }
 
-int main_hold(int argc, char **argv)
+int main(int argc, char **argv)
 {
     threadpool_t *tm;
     int     *vals;

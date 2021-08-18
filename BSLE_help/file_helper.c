@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
+#include <errno.h>
 
 #define MAX_BUFF 256
 
@@ -40,16 +41,14 @@ FILE * open_file(char *filename)
     return fp;
 }
 
-int main (void)
+int print_file_by_tokens(FILE * fp)
 {
-    FILE *fp = 0;
     unsigned char * file_contents = malloc(sizeof(char) * MAX_BUFF);
     char * rest = NULL;
+    char * endptr = NULL;
+    char * token = NULL;
+    uint16_t item_length = 0;
     int location = 0;
-
-    user_node_t test_user = {0};
-
-    fp = open_file("test.txt");
 
     puts("File Opened");
 
@@ -57,23 +56,47 @@ int main (void)
     {
 
         location = ftell(fp);
-        printf("Location %d \n", location);
+        printf("\nLine Ends at: %d \n", location);
 
-        test_user.username_length = (uint16_t) strtok_r(file_contents, ",", &rest);
-        printf("%d",test_user.username_length );
+        item_length = strtol(strtok_r(file_contents, ",", &rest), &endptr, 10);
+        if(0 == item_length)
+        {
+            if(EINVAL == errno)
+            {
+                perror("Conversion Error");
+                exit(EXIT_FAILURE);
+            }
+        }
+        printf("\t%d",item_length);
 
-        test_user.username = strtok_r(NULL,",", &rest);
-        printf("\t%s",test_user.username);
+        token = strtok_r(NULL,",", &rest);
+        printf("\t%s",token);
 
-        test_user.password_length = strtok_r(NULL,",", &rest);
-        printf("\t%d",test_user.password_length);
+        item_length = strtol(strtok_r(NULL, ",", &rest), &endptr, 10);
+        if(0 == item_length)
+        {
+            if(EINVAL == errno)
+            {
+                perror("Conversion Error");
+                exit(EXIT_FAILURE);
+            }
+        }
+        printf("\t%d",item_length);
 
-        test_user.password = strtok_r(NULL,",", &rest);
-        printf("\t%s \n",test_user.password);
+        token = strtok_r(NULL,",", &rest);
+        printf("\t%s \n",token);
     }
-
     free(file_contents);
     fclose(fp);
 
     return EXIT_SUCCESS;
+}
+
+int main (void)
+{
+    FILE *fp = 0;
+    fp = open_file("test.txt");
+    print_file_by_tokens(fp);
+
+    exit(EXIT_SUCCESS);
 }

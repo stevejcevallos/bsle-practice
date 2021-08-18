@@ -14,14 +14,14 @@ static tpool_work_t * tpool_work_create(thread_func_t func, void *arg)
 {
     tpool_work_t *work;
 
-    if(func == NULL)
+    if(NULL == func)
     {
         return NULL;
     }
 
     work = malloc(sizeof(*work));
 
-    if(work == NULL)
+    if(NULL == work)
     {
         perror("Failed to Malloc Work");
         exit(EXIT_FAILURE);
@@ -36,7 +36,7 @@ static tpool_work_t * tpool_work_create(thread_func_t func, void *arg)
 
 static int tpool_work_destroy(tpool_work_t *work)
 {
-    if (work == NULL)
+    if (NULL == work)
     {
         return -1;
     }
@@ -51,7 +51,7 @@ static tpool_work_t *tpool_get_work(threadpool_t *pool)
     tpool_work_t *work_to_complete;
 
     //Checks if the pool has jobs to complete
-    if(pool == NULL)
+    if(NULL == pool)
     {
         return NULL;
     }
@@ -59,13 +59,13 @@ static tpool_work_t *tpool_get_work(threadpool_t *pool)
     work_to_complete = pool->first_work;
 
     //Check if the first job is not empty
-    if(work_to_complete == NULL)
+    if(NULL == work_to_complete)
     {
         return NULL;
     }
 
     //Assigns the next job to be the first node again or NULL if no jobs present
-    if(work_to_complete->next_job == NULL)
+    if(NULL == work_to_complete->next_job)
     {
         pool->first_work = NULL;
         pool->last_work = NULL;
@@ -88,7 +88,7 @@ static void * tpool_worker(void *args)
         check_functionality(pthread_mutex_lock(&(pool->work_lock)),
             "Failed to Lock the Mutex", 0);
 
-        while (pool->first_work == NULL && !pool->shutdown)
+        while (NULL == pool->first_work && !pool->shutdown)
         {
             check_functionality(pthread_cond_wait(&(pool->work_to_complete), &(pool->work_lock)),
                 "Failed to make it wait", 0);
@@ -104,7 +104,7 @@ static void * tpool_worker(void *args)
         check_functionality(pthread_mutex_unlock(&(pool->work_lock)),
                 "Failed to Unlock Mutex", 0);
 
-        if(work != NULL)
+        if(NULL != work)
         {
             work->function(work->args);
             check_functionality(tpool_work_destroy(work),
@@ -115,7 +115,7 @@ static void * tpool_worker(void *args)
             "Failed to Lock the Mutex", 0);
         pool->work_count--;
 
-        if(!pool->shutdown && pool->work_count == 0 && pool->first_work == NULL)
+        if(!pool->shutdown && pool->work_count == 0 && NULL == pool->first_work)
         {
             check_functionality(pthread_cond_signal(&(pool->no_threads_processing)),
             "Failed to Signal no threads processing", 0);
@@ -139,13 +139,13 @@ threadpool_t *tpool_create(size_t num)
 {
     threadpool_t *pool;
 
-    if(num == 0)
+    if(0 == num)
     {
         return NULL;
     }
 
     pool = calloc(1, sizeof(*pool));
-    if(pool == NULL)
+    if(NULL == pool)
     {
         perror("Failed to Calloc Pool");
         exit(EXIT_FAILURE);
@@ -154,7 +154,7 @@ threadpool_t *tpool_create(size_t num)
     pool->thread_count = num;
     pool->working_threads_count = num;
     pool->threads = calloc(num, sizeof(pthread_t));
-    if(pool->threads == NULL)
+    if(NULL == pool->threads)
     {
         perror("Failed to Calloc Pool");
         exit(EXIT_FAILURE);
@@ -187,7 +187,7 @@ int tpool_destroy(threadpool_t *pool)
     tpool_work_t *work;
     tpool_work_t *temp_work;
 
-    if(pool ==  NULL)
+    if(NULL == pool)
     {
         return -1;
     }
@@ -197,7 +197,7 @@ int tpool_destroy(threadpool_t *pool)
 
     work = pool->first_work;
 
-    while(work != NULL)
+    while(NULL != work)
     {
         temp_work = work->next_job;
         check_functionality(tpool_work_destroy(work),
@@ -243,13 +243,13 @@ bool tpool_add_work(threadpool_t *pool, thread_func_t func, void *args)
 {
     tpool_work_t *work;
 
-    if(pool == NULL)
+    if(NULL == pool)
     {
         return false;
     }
 
     work = tpool_work_create(func, args);
-    if(work == NULL)
+    if(NULL == work)
     {
         return false;
     }
@@ -257,7 +257,7 @@ bool tpool_add_work(threadpool_t *pool, thread_func_t func, void *args)
     check_functionality(pthread_mutex_lock(&(pool->work_lock)),
             "Failed to Lock the Mutex", 0);
 
-    if(pool->first_work == NULL)
+    if(NULL == pool->first_work)
     {
         pool->first_work = work;
         pool->last_work = pool->first_work;
@@ -279,7 +279,7 @@ bool tpool_add_work(threadpool_t *pool, thread_func_t func, void *args)
 
 void tpool_wait(threadpool_t *pool)
 {
-    if(pool == NULL)
+    if(NULL == pool)
     {
         return;
     }
