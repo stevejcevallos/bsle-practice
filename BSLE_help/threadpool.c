@@ -144,7 +144,7 @@ threadpool_t *tpool_create(size_t num)
         return NULL;
     }
 
-    pool = calloc(1, sizeof(*pool));
+    pool = calloc(1, sizeof(* pool));
     if(NULL == pool)
     {
         perror("Failed to Calloc Pool");
@@ -177,6 +177,11 @@ threadpool_t *tpool_create(size_t num)
     {
         check_functionality(pthread_create(&(pool->threads[index]), NULL, tpool_worker, pool),
             "Failed to Create Threads Goodbye", 0);
+    }
+
+    if(NULL == pool->threads)
+    {
+        tpool_destroy(pool);
     }
 
     return pool;
