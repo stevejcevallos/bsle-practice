@@ -41,6 +41,44 @@ FILE * open_file(char *filename)
     return fp;
 }
 
+int change_values_in_files(FILE * fp, uint16_t test_value)
+{
+    unsigned char * file_contents = malloc(sizeof(char) * MAX_BUFF);
+    char * rest = NULL;
+    char * endptr = NULL;
+    char * token = NULL;
+    uint16_t item_length = 0;
+    int location = 0;
+
+    puts("File Opened");
+
+    while(fgets(file_contents, MAX_BUFF, fp) != NULL)
+    {
+        location = ftell(fp);
+        printf("\nLine Ends at: %d \n", location);
+
+        item_length = strtol(strtok_r(file_contents, ",", &rest), &endptr, 10);
+        if(0 == item_length)
+        {
+            if(EINVAL == errno)
+            {
+                perror("Conversion Error");
+                exit(EXIT_FAILURE);
+            }
+        }
+        
+        //The value is the same to the one I am looking for
+        if(item_length == test_value)
+        {
+            printf("Location of the pointer %d \n", ftell(fp));
+        }
+    }
+    free(file_contents);
+    fclose(fp);
+
+    return EXIT_SUCCESS;
+}
+
 int print_file_by_tokens(FILE * fp)
 {
     unsigned char * file_contents = malloc(sizeof(char) * MAX_BUFF);
@@ -97,6 +135,7 @@ int main (void)
     FILE *fp = 0;
     fp = open_file("test.txt");
     print_file_by_tokens(fp);
+    change_values_in_files(fp, 5);
 
     exit(EXIT_SUCCESS);
 }
