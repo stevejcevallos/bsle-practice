@@ -48,6 +48,7 @@ int change_password_in_files(FILE * fp, uint16_t test_value_length, char * test_
     char * endptr = NULL;
     char * token = NULL;
     uint16_t current_item_length = 0;
+    uint8_t old_password_length = 0;
     size_t buffer_size = 256;
     char * file_contents = NULL;
     int32_t bytes_read = 0;
@@ -83,10 +84,20 @@ int change_password_in_files(FILE * fp, uint16_t test_value_length, char * test_
 
             if(0 == strncmp(token, test_value, current_item_length))
             {
+                old_password_length = strtol(strtok_r(NULL, ",", &rest), &endptr, 10);
+                if(0 == old_password_length)
+                {
+                    if(EINVAL == errno)
+                    {
+                        perror("Conversion Error");
+                        exit(EXIT_FAILURE);
+                    }
+                }
+
                 start_of_line =  ftell(fp) - bytes_read;
-                printf("Start of Line File Location%d \n", start_of_line);
+                printf("Old pass length %d \n", old_password_length);
                 fseek(fp,start_of_line + current_item_length + 3, SEEK_SET);
-                fprintf(fp,"%d,%s", new_password_length, new_password);
+                fprintf(fp,"%d,%*s", new_password_length, old_password_length, new_password);
             }
         }
     }
