@@ -43,19 +43,22 @@ FILE * open_file(char *filename)
 
 int change_values_in_files(FILE * fp, uint16_t test_value)
 {
-    unsigned char * file_contents = malloc(sizeof(char) * MAX_BUFF);
+
     char * rest = NULL;
     char * endptr = NULL;
     char * token = NULL;
     uint16_t item_length = 0;
+    size_t buffer_size = 256;
+    char * file_contents = NULL;
     int location = 0;
+    char writing_this[] = "Test";
 
     puts("File Opened");
 
-    while(fgets(file_contents, MAX_BUFF, fp) != NULL)
+    while(EOF != (location = getline(&file_contents, &buffer_size, fp)))
     {
-        location = ftell(fp);
-        printf("\nLine Ends at: %d \n", location);
+        printf("\nByte Size at: %d \n", location);
+        printf("BUFF %s \n", file_contents);
 
         item_length = strtol(strtok_r(file_contents, ",", &rest), &endptr, 10);
         if(0 == item_length)
@@ -66,13 +69,15 @@ int change_values_in_files(FILE * fp, uint16_t test_value)
                 exit(EXIT_FAILURE);
             }
         }
-        
+
         //The value is the same to the one I am looking for
         if(item_length == test_value)
         {
-            printf("Location of the pointer %d \n", ftell(fp));
+            printf("Location of the pointer %ld \n", ftell(fp));
+            fwrite(writing_this, 1, sizeof(writing_this), fp);
         }
     }
+
     free(file_contents);
     fclose(fp);
 
@@ -81,20 +86,19 @@ int change_values_in_files(FILE * fp, uint16_t test_value)
 
 int print_file_by_tokens(FILE * fp)
 {
-    unsigned char * file_contents = malloc(sizeof(char) * MAX_BUFF);
     char * rest = NULL;
     char * endptr = NULL;
     char * token = NULL;
     uint16_t item_length = 0;
-    int location = 0;
+    size_t buffer_size = 256;
+    char * file_contents = NULL;
+    int32_t bytes_read = 0;
 
     puts("File Opened");
 
-    while(fgets(file_contents, MAX_BUFF, fp) != NULL)
+    while(EOF != (bytes_read = getline(&file_contents, &buffer_size, fp)))
     {
-
-        location = ftell(fp);
-        printf("\nLine Ends at: %d \n", location);
+        printf("\nBytes Read: %d \n", bytes_read);
 
         item_length = strtol(strtok_r(file_contents, ",", &rest), &endptr, 10);
         if(0 == item_length)
@@ -135,7 +139,7 @@ int main (void)
     FILE *fp = 0;
     fp = open_file("test.txt");
     print_file_by_tokens(fp);
-    change_values_in_files(fp, 5);
+    //change_values_in_files(fp, 2);
 
     exit(EXIT_SUCCESS);
 }
