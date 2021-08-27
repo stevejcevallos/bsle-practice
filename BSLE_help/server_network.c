@@ -11,6 +11,8 @@
 #include <fcntl.h>
 #include <errno.h>
 
+#include "threadpool.h"
+
 
 #define PORT_NUM 2000
 #define MAX_CLIENTS 20
@@ -148,6 +150,7 @@ int main()
     int client_socket;
     struct sockaddr_in client_addr = {0};
     socklen_t client_len = 0;
+    threadpool_t * server_threadpool;
 
     int server_socket = check_functionality(set_up_server_socket(),
         "In server_network.c Failed to Set Up Server", -1);
@@ -162,7 +165,6 @@ int main()
     puts("Listening for New Connections");
 
     //Keeps the Server Open to accept connections
-    //***********CHANGE TO CLOSE EVERYTHING AT A SIGINT *******
     while(running)
     {
 

@@ -14,7 +14,8 @@ void worker(void *arg)
     int  old = *val;
 
     *val += 1000;
-    printf("tid=%ld, old=%d, val=%d\n", pthread_self(), old, *val);
+    //Memeory Leak on Printing Vals, Not threadpool
+    //printf("tid=%ld, old=%d, val=%d\n", pthread_self(), old, *val);
 
     if (*val%2)
         usleep(100000);
@@ -34,7 +35,7 @@ int main(int argc, char **argv)
         tpool_add_work(tm, worker, vals+i);
     }
 
-    tpool_wait(tm);
+    //tpool_wait(tm);
 
     for (i=0; i<num_items; i++) {
         printf("%d\n", vals[i]);

@@ -5,12 +5,12 @@ int check_functionality(int check_this, char * error_msg, int value)
     if(check_this != value)
     {
         perror(error_msg);
-        return value;
+        exit(EXIT_FAILURE);
     }
     return check_this;
 }
 
-static tpool_work_t * tpool_work_create(thread_func_t func, void *arg)
+tpool_work_t * tpool_work_create(thread_func_t func, void *arg)
 {
     tpool_work_t *work;
 
@@ -34,7 +34,7 @@ static tpool_work_t * tpool_work_create(thread_func_t func, void *arg)
     return work;
 }
 
-static int tpool_work_destroy(tpool_work_t *work)
+int tpool_work_destroy(tpool_work_t *work)
 {
     if (NULL == work)
     {
@@ -46,7 +46,7 @@ static int tpool_work_destroy(tpool_work_t *work)
     return 0;
 }
 
-static tpool_work_t *tpool_get_work(threadpool_t *pool)
+tpool_work_t *tpool_get_work(threadpool_t *pool)
 {
     tpool_work_t *work_to_complete;
 
@@ -78,7 +78,7 @@ static tpool_work_t *tpool_get_work(threadpool_t *pool)
     return work_to_complete;
 }
 
-static void * tpool_worker(void *args)
+void * tpool_worker(void *args)
 {
     threadpool_t * pool = args;
     tpool_work_t * work;

@@ -51,7 +51,7 @@ int check_functionality(int check_this, char * error_msg, int value);
  *
  * @return Treadpool work or NULL if function is empty
  */
-static tpool_work_t * tpool_work_create(thread_func_t func, void *arg);
+tpool_work_t * tpool_work_create(thread_func_t func, void *arg);
 
 /**
  * @brief Destroys a Job object and Clears the memory of the job
@@ -59,7 +59,7 @@ static tpool_work_t * tpool_work_create(thread_func_t func, void *arg);
  * @param work Job to destroy
  * @return None
  */
-static int tpool_work_destroy(tpool_work_t *work);
+int tpool_work_destroy(tpool_work_t *work);
 
 /**
  * @brief Retrives a job from the threadpool job linked list and handles the list
@@ -67,7 +67,7 @@ static int tpool_work_destroy(tpool_work_t *work);
  * @param pool threadpool with jobs
  * @return job to be completed or NULL on failue
  */
-static tpool_work_t *tpool_get_work(threadpool_t *pool);
+tpool_work_t *tpool_get_work(threadpool_t *pool);
 
 /**
  * @brief Main threadpool function, handles the jobs to be completed.
@@ -76,7 +76,7 @@ static tpool_work_t *tpool_get_work(threadpool_t *pool);
  * @param pool threadpool to be porcessed
  * @return NULL on end of the pool
  */
-static void * tpool_worker(void *args);
+void * tpool_worker(void *args);
 
 /**
  * @brief Creates a threadpool of with a specified number of threads
@@ -98,8 +98,8 @@ int tpool_destroy(threadpool_t *pool);
  * @brief Adding work to the linked list of work to complete, notifies threads of work
  *
  * @param pool to add work to
- * @param func to complete
- * @param args of the function
+ * @param func to for the threadpool to run
+ * @param args of the function to run
  *
  * @return ture on success, false on failue
  */
