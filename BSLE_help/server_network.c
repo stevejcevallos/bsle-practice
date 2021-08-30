@@ -152,6 +152,8 @@ void * handle_connection(void * thread_client_socket)
 {
     int client_socket = *((int*) thread_client_socket);
 
+    printf("Thread {%ld} Running Connection", pthread_self());
+
     //Send Message to Client Stating the Connection has been established
     char * connected_message = "Connection Established! Welcome!";
     int message_size = strlen(connected_message);
@@ -177,6 +179,8 @@ void * handle_connection(void * thread_client_socket)
 
     printf("MESSAGE: %s \n", client_response);
     printf("SIZE: %ld \n", client_response_size);
+
+    close(client_socket);
 
     return (void *)0;
 }
