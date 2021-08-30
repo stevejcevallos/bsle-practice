@@ -1,6 +1,6 @@
 #include "threadpool.h"
 
-int check_functionality(int check_this, char * error_msg, int value)
+int check_functionality_threadpool(int check_this, char * error_msg, int value)
 {
     if(check_this != value)
     {
@@ -85,12 +85,12 @@ void * tpool_worker(void *args)
 
     while (1)
     {
-        check_functionality(pthread_mutex_lock(&(pool->work_lock)),
+        check_functionality_threadpool(pthread_mutex_lock(&(pool->work_lock)),
             "Failed to Lock the Mutex", 0);
 
         while (NULL == pool->first_work && !pool->shutdown)
         {
-            check_functionality(pthread_cond_wait(&(pool->work_to_complete), &(pool->work_lock)),
+            check_functionality_threadpool(pthread_cond_wait(&(pool->work_to_complete), &(pool->work_lock)),
                 "Failed to make it wait", 0);
         }
 
@@ -101,35 +101,35 @@ void * tpool_worker(void *args)
 
         work = tpool_get_work(pool);
         pool->work_count++;
-        check_functionality(pthread_mutex_unlock(&(pool->work_lock)),
+        check_functionality_threadpool(pthread_mutex_unlock(&(pool->work_lock)),
                 "Failed to Unlock Mutex", 0);
 
         if(NULL != work)
         {
             work->function(work->args);
-            check_functionality(tpool_work_destroy(work),
+            check_functionality_threadpool(tpool_work_destroy(work),
                 "Failed to Destroy Work", 0);
         }
 
-        check_functionality(pthread_mutex_lock(&(pool->work_lock)),
+        check_functionality_threadpool(pthread_mutex_lock(&(pool->work_lock)),
             "Failed to Lock the Mutex", 0);
         pool->work_count--;
 
         if(!pool->shutdown && pool->work_count == 0 && NULL == pool->first_work)
         {
-            check_functionality(pthread_cond_signal(&(pool->no_threads_processing)),
+            check_functionality_threadpool(pthread_cond_signal(&(pool->no_threads_processing)),
             "Failed to Signal no threads processing", 0);
         }
 
-        check_functionality(pthread_mutex_unlock(&(pool->work_lock)),
+        check_functionality_threadpool(pthread_mutex_unlock(&(pool->work_lock)),
                 "Failed to Unlock Mutex", 0);
     }
 
     pool->working_threads_count--;
-    check_functionality(pthread_cond_signal(&(pool->no_threads_processing)),
+    check_functionality_threadpool(pthread_cond_signal(&(pool->no_threads_processing)),
             "Failed to Signal no threads processing", 0);
 
-    check_functionality(pthread_mutex_unlock(&(pool->work_lock)),
+    check_functionality_threadpool(pthread_mutex_unlock(&(pool->work_lock)),
                 "Failed to Unlock Mutex", 0);
 
     return NULL;
@@ -160,13 +160,13 @@ threadpool_t *tpool_create(size_t num)
         exit(EXIT_FAILURE);
     }
 
-    check_functionality(pthread_mutex_init(&(pool->work_lock), NULL),
+    check_functionality_threadpool(pthread_mutex_init(&(pool->work_lock), NULL),
         "Failed to Init the Mutex", 0);
 
-    check_functionality(pthread_cond_init(&(pool->work_to_complete), NULL),
+    check_functionality_threadpool(pthread_cond_init(&(pool->work_to_complete), NULL),
         "Failed to Init the Work to Complete Condition", 0);
 
-    check_functionality(pthread_cond_init(&(pool->no_threads_processing), NULL),
+    check_functionality_threadpool(pthread_cond_init(&(pool->no_threads_processing), NULL),
         "Failed to Init the No Threads Processing Condition", 0);
 
     pool->first_work = NULL;
@@ -175,7 +175,7 @@ threadpool_t *tpool_create(size_t num)
 
     for(size_t index = 0; index < num; index++)
     {
-        check_functionality(pthread_create(&(pool->threads[index]), NULL, tpool_worker, pool),
+        check_functionality_threadpool(pthread_create(&(pool->threads[index]), NULL, tpool_worker, pool),
             "Failed to Create Threads Goodbye", 0);
     }
 
@@ -197,7 +197,7 @@ int tpool_destroy(threadpool_t *pool)
         return -1;
     }
 
-    check_functionality(pthread_mutex_lock(&(pool->work_lock)),
+    check_functionality_threadpool(pthread_mutex_lock(&(pool->work_lock)),
             "Failed to Lock the Mutex", 0);
 
     work = pool->first_work;
@@ -205,23 +205,23 @@ int tpool_destroy(threadpool_t *pool)
     while(NULL != work)
     {
         temp_work = work->next_job;
-        check_functionality(tpool_work_destroy(work),
+        check_functionality_threadpool(tpool_work_destroy(work),
                 "Failed to Destroy Work", 0);
         work = temp_work;
     }
 
     pool->shutdown = true;
-    check_functionality(pthread_cond_broadcast(&(pool->work_to_complete)),
+    check_functionality_threadpool(pthread_cond_broadcast(&(pool->work_to_complete)),
         "Failed to Broadcast the Condition", 0);
 
-    check_functionality(pthread_mutex_unlock(&(pool->work_lock)),
+    check_functionality_threadpool(pthread_mutex_unlock(&(pool->work_lock)),
                 "Failed to Unlock Mutex", 0);
 
     tpool_wait(pool);
 
     for(size_t index = 0; index < pool->thread_count; index++)
     {
-        check_functionality(pthread_join(pool->threads[index], NULL),
+        check_functionality_threadpool(pthread_join(pool->threads[index], NULL),
             "Failed to Join Threads", 0);
 
     }
@@ -231,11 +231,11 @@ int tpool_destroy(threadpool_t *pool)
         free(pool->threads);
         pool->threads = NULL;
 
-        check_functionality(pthread_mutex_destroy(&(pool->work_lock)),
+        check_functionality_threadpool(pthread_mutex_destroy(&(pool->work_lock)),
             "Failed to destroy the mutex", 0);
-        check_functionality(pthread_cond_destroy(&(pool->work_to_complete)),
+        check_functionality_threadpool(pthread_cond_destroy(&(pool->work_to_complete)),
             "Failed to destroy the work to complete", 0);
-        check_functionality(pthread_cond_destroy(&(pool->no_threads_processing)),
+        check_functionality_threadpool(pthread_cond_destroy(&(pool->no_threads_processing)),
             "Failed to destroy the no threads", 0);
     }
 
@@ -259,7 +259,7 @@ bool tpool_add_work(threadpool_t *pool, thread_func_t func, void *args)
         return false;
     }
 
-    check_functionality(pthread_mutex_lock(&(pool->work_lock)),
+    check_functionality_threadpool(pthread_mutex_lock(&(pool->work_lock)),
             "Failed to Lock the Mutex", 0);
 
     if(NULL == pool->first_work)
@@ -273,10 +273,10 @@ bool tpool_add_work(threadpool_t *pool, thread_func_t func, void *args)
         pool->last_work = work;
     }
 
-    check_functionality(pthread_cond_broadcast(&(pool->work_to_complete)),
+    check_functionality_threadpool(pthread_cond_broadcast(&(pool->work_to_complete)),
         "Failed to Broadcast the Condition", 0);
 
-    check_functionality(pthread_mutex_unlock(&(pool->work_lock)),
+    check_functionality_threadpool(pthread_mutex_unlock(&(pool->work_lock)),
                 "Failed to Unlock Mutex", 0);
 
     return true;
@@ -289,7 +289,7 @@ void tpool_wait(threadpool_t *pool)
         return;
     }
 
-    check_functionality(pthread_mutex_lock(&(pool->work_lock)),
+    check_functionality_threadpool(pthread_mutex_lock(&(pool->work_lock)),
             "Failed to Lock the Mutex", 0);
 
     while (1)
@@ -297,7 +297,7 @@ void tpool_wait(threadpool_t *pool)
         if((!pool->shutdown && pool->work_count != 0) ||
             (pool->shutdown && pool->working_threads_count != 0))
             {
-                check_functionality(pthread_cond_wait(&(pool->no_threads_processing), &(pool->work_lock)),
+                check_functionality_threadpool(pthread_cond_wait(&(pool->no_threads_processing), &(pool->work_lock)),
                 "Failed to make it wait", 0);
             }
             else
@@ -305,6 +305,6 @@ void tpool_wait(threadpool_t *pool)
                 break;
             }
     }
-    check_functionality(pthread_mutex_unlock(&(pool->work_lock)),
+    check_functionality_threadpool(pthread_mutex_unlock(&(pool->work_lock)),
             "Failed to Lock the Mutex", 0);
 }

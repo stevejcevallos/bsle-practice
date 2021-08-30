@@ -8,7 +8,7 @@
 
 //REF: https://nachtimwald.com/2019/04/12/thread-pool-in-c/
 
-typedef void (*thread_func_t)(void *args);
+typedef void *(*thread_func_t)(void *args);
 
 typedef struct tpool_work
 {

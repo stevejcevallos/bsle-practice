@@ -48,8 +48,8 @@ void signal_handler(int sig)
  *
  * @return: 0 is a Sucessful connections, -1 is Failed connection
 */
-static bool get_message(int fd, char *buffer, size_t *buffer_size){
-
+static bool get_message(int fd, char *buffer, size_t *buffer_size)
+{
     char * message = buffer;
     size_t count = 0;
     while(count < *buffer_size && recv(fd, message, 1, 0) == 1)
@@ -80,7 +80,7 @@ static bool get_message(int fd, char *buffer, size_t *buffer_size){
  *
  * @return: function return operation on sucess, -1 on failue
 */
-int check_functionality(int check_this, char * error_msg, int value)
+int check_functionality_server(int check_this, char * error_msg, int value)
 {
     if(check_this == value)
     {
@@ -107,14 +107,14 @@ int set_up_server_socket(void)
     int opt_val = 1;
 
     //Creating the TCP Socket to Connect to the Server
-    server_socket = check_functionality(socket(AF_INET, SOCK_STREAM, 0),
+    server_socket = check_functionality_server(socket(AF_INET, SOCK_STREAM, 0),
         "In server_network.c Failed to set the Network Socket ", -1);
 
     //Set Server to Non-Blocking
-    flags = check_functionality(fcntl(server_socket, F_GETFL, 0),
+    flags = check_functionality_server(fcntl(server_socket, F_GETFL, 0),
         "In server_network.c Failed to get the flags on Socket", -1);
 
-    check_functionality(fcntl(server_socket, F_SETFL, flags | O_NONBLOCK),
+    check_functionality_server(fcntl(server_socket, F_SETFL, flags | O_NONBLOCK),
         "In server_network.c Failed to set socket as Non-Blocking", -1);
 
 
@@ -125,20 +125,60 @@ int set_up_server_socket(void)
     server_addr.sin_addr.s_addr = INADDR_ANY;
 
     //Setting the Socket OPTs to the apporpriate setting to reuse the Network
-    check_functionality(setsockopt(server_socket, SOL_SOCKET, SO_REUSEADDR, &opt_val, sizeof(opt_val)),
+    check_functionality_server(setsockopt(server_socket, SOL_SOCKET, SO_REUSEADDR, &opt_val, sizeof(opt_val)),
         "In server_network.c Failed to set socket opt", -1);
 
     //Bind the specified socket to the created Scoket Addr
-    check_functionality(bind(server_socket, (struct sockaddr *) &server_addr, sizeof(server_addr)),
+    check_functionality_server(bind(server_socket, (struct sockaddr *) &server_addr, sizeof(server_addr)),
         "In server_network.c  Failed to Bind the Network", -1);
 
     //Beginning to Listen for Pythonic TCP Connections
-    check_functionality(listen(server_socket, MAX_CLIENTS),
+    check_functionality_server(listen(server_socket, MAX_CLIENTS),
         "In server_network.c  Failed to Listen to Any Connections", -1);
 
     puts("Server Established");
 
     return server_socket;
+}
+
+/**
+ * @brief Handles the connection of the TCP server. Processes the messages to send back.
+ *
+ * @param thread_client_socket contains the socket FD to be able to use the connections
+ *
+ * @return 1 if fail and 0 on sucess
+*/
+void * handle_connection(void * thread_client_socket)
+{
+    int client_socket = *((int*) thread_client_socket);
+
+    //Send Message to Client Stating the Connection has been established
+    char * connected_message = "Connection Established! Welcome!";
+    int message_size = strlen(connected_message);
+    if(send(client_socket, connected_message, message_size, 0) < 0)
+    {
+        puts("In server_network.c Failed to Send Connection to Clients");
+        close(client_socket);
+        return (void *)1;
+    }
+
+    /***************** CHANGE CLIENT MESSAGE SIZE BASED ON PROJECT ****************/
+    // Curently get_messages checks if the last value is a null byte
+    size_t client_response_size = 65535;
+    char client_response[65535] = {0};
+
+    //Calls the get message Function to read in bit by bit
+    if(get_message(client_socket, client_response, &client_response_size) == false)
+    {
+        puts("In server_network.c Failed to Recv the Entire Message from the Client");
+        close(client_socket);
+        return (void *)1;
+    }
+
+    printf("MESSAGE: %s \n", client_response);
+    printf("SIZE: %ld \n", client_response_size);
+
+    return (void *)0;
 }
 
 /**
@@ -152,8 +192,16 @@ int main()
     socklen_t client_len = 0;
     threadpool_t * server_threadpool;
 
-    int server_socket = check_functionality(set_up_server_socket(),
+    int server_socket = check_functionality_server(set_up_server_socket(),
         "In server_network.c Failed to Set Up Server", -1);
+
+    server_threadpool = tpool_create(MAX_CLIENTS);
+
+    if(NULL == server_threadpool)
+    {
+        perror("Failed to Create the Threadpool Goodbye!");
+        exit(EXIT_FAILURE);
+    }
 
     //Signal handler
     if(signal(SIGINT, signal_handler) ==  SIG_ERR)
@@ -167,7 +215,6 @@ int main()
     //Keeps the Server Open to accept connections
     while(running)
     {
-
         char client_ip[INET_ADDRSTRLEN];
 
         //Accepts Connections that are incomming, Prints IP with valid connection
@@ -185,37 +232,13 @@ int main()
         }
         else
         {
-            printf("Connected to {%s} \n", inet_ntop(AF_INET, &client_addr.sin_addr.s_addr,
+            printf("Accepted {%s} Adding Work to Thread\n", inet_ntop(AF_INET, &client_addr.sin_addr.s_addr,
                 client_ip, INET_ADDRSTRLEN));
+            tpool_add_work(server_threadpool, &handle_connection, &client_socket);
         }
-
-        //Send Message to Client Stating the Connection has been established
-        char * connected_message = "Connection Established! Welcome!";
-        int message_size = strlen(connected_message);
-        if(send(client_socket, connected_message, message_size, 0) < 0)
-        {
-            puts("In server_network.c Failed to Send Connection to Clients");
-            close(server_socket);
-            return -1;
-        }
-
-        /***************** CHANGE CLIENT MESSAGE SIZE BASED ON PROJECT ****************/
-        // Curently get_messages checks if the last value is a null byte
-        size_t client_response_size = 65535;
-        char client_response[65535] = {0};
-
-        //Calls the get message Function to read in bit by bit
-        if(get_message(client_socket, client_response, &client_response_size) == false)
-        {
-            puts("In server_network.c Failed to Recv the Entire Message from the Client");
-            close(server_socket);
-            return -1;
-        }
-
-        printf("MESSAGE: %s \n", client_response);
-        printf("SIZE: %ld \n", client_response_size);
     }
     puts("Closing Connection");
+    tpool_destroy(server_threadpool);
     close(server_socket);
     exit(EXIT_SUCCESS);
 }
