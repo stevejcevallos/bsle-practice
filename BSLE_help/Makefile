@@ -1,23 +1,49 @@
 #*- MakeFile -*-
-CC = gcc
-TARGET = Capstone
+CC=gcc-10
+CFLAGS= -Wall -pthread -g
 
-SRCDIR = src
-BINDIR = bin
-INCDIR = include
+_OBJ = server_network.o threadpool.o 
+OBJ = $(patsubst %, $(ODIR)/%,$(_OBJ))
+ODIR = SRC
 
-SOURCES := $(wildcard $(SRCDIR)/*.c)
-OBJECTS := $(patsubst %,$(BINDIR)/%, $(notdir $(SOURCES:.c=.o)))
+IDIR = include
 
-CFLAGS= -Wall -pthread
+_DEPS = threadpool.h
+DEPS = $(patsubst %, $(IDIR)/%,$(_DEPS))
 
-$(BINDIR)/$(TARGET) : $(OBJECTS)
-	$(CC) $(CFLAGS) -o $@ $^
+PORT = 2000
+IP = 127.0.0.1
 
-$(BINDIR)/%.o : $(SRCDIR)/%.c
-	$(CC) $(CFLAGS) -c $< -o $@
+$(ODIR)/%.o: SRC/%.c $(DEPS)
+	$(CC) $(CFLAGS) -c -o $@ $<
+	
+all: $(OBJ)
+	mkdir -p BIN
+	$(CC) $(CFLAGS) -o BIN/capstone $^
 
-.PHONY: clean
+$(OBJ): | $(ODIR)
+
+$(ODIR):
+	mkdir $(ODIR)
+
+execute: all 
+	BIN/capstone
+
+client: 
+	python3 SRC/client/client_network.py $(IP) $(PORT)
+
+valgrind: all
+	valgrind --leak-check=full --show-leak-kinds=all BIN/capstone
+
+test: $(OBJ)
+	$(CC) $(CFLAGS) -lcunit -o Test $^ Tests/main_tests.c Tests/general_tests.c
+	Tests
 
 clean:
-	rm -f $(OBJECTS) $(BINDIR)/$(TARGET)
+	rm -f BIN/capstone
+	rm -f $(ODIR)/*.o
+	rm -f BIN/test
+	rm -f BIN/test-Results.xml
+	rm -f BIN/test-Listing.xml
+	rmdir BIN
+	rm -f SRC/client/users.txt
