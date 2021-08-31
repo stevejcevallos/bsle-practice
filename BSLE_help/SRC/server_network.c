@@ -114,9 +114,9 @@ int set_up_server_socket(void)
     flags = check_functionality_server(fcntl(server_socket, F_GETFL, 0),
         "In server_network.c Failed to get the flags on Socket", -1);
 
+    //Sets Up Non Blocking
     check_functionality_server(fcntl(server_socket, F_SETFL, flags | O_NONBLOCK),
         "In server_network.c Failed to set socket as Non-Blocking", -1);
-
 
     //Setting the Server Socket family to IPv4 and Setting specified Port for server to be 2000
     struct sockaddr_in server_addr = {0};
