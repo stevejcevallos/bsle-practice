@@ -22,10 +22,10 @@ static int get_message(int fd, char *buffer, size_t *buffer_size)
         }
         message++;
     }
+    
+    //printf("MESSAGE: %s \n", client_response);
+    //printf("SIZE: %ld \n", client_response_size);
 
-    printf("buffer is |%s|\n", buffer);
-    printf("message is |%s|\n", message);
-    printf("MY SIZE: %ld \n", count);
     return -1;
 }
 
@@ -140,9 +140,6 @@ void * handle_connection(void * thread_client_socket)
         return (void *)1;
     }
 
-    printf("MESSAGE: %s \n", client_response);
-    printf("SIZE: %ld \n", client_response_size);
-
     close(client_socket);
 
     return (void *)0;
@@ -198,6 +195,7 @@ int main()
         {
             printf("Accepted {%s} Adding Work to Thread\n", inet_ntop(AF_INET, &client_addr.sin_addr.s_addr,
                 client_ip, INET_ADDRSTRLEN));
+                    printf("SOCK: %d \n", client_socket);
             tpool_add_work(server_threadpool, &handle_connection, &client_socket);
         }
     }
