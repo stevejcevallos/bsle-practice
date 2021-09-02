@@ -1,5 +1,6 @@
 import socket
 import argparse
+import struct
 
 def client_network_connection(ip_address, port):
 
@@ -15,9 +16,14 @@ def client_network_connection(ip_address, port):
         server_response = client_socket.recv(1024)
         print(server_response.decode())
 
-        server_connected_messgage = "Thank you!\0"
+        #Add Functions to Deserialize and Process the Message for the Client
+        client_message = input("\t Enter a Message: ")
+        client_message_bytes = client_message.encode("utf-8")
+        client_message_length = len(client_message)
 
-        client_socket.send(server_connected_messgage.encode())
+        print(struct.pack("d", client_message_length))
+
+        #client_socket.send(server_connected_messgage.encode())
 
 def main():
     #Proppts User to Enter the Public IP of the Server

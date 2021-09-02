@@ -58,6 +58,9 @@ static int get_message(int fd, char *buffer, size_t *buffer_size);
 static int send_message(int fd, char * message_to_send, size_t *message_size);
 
 /**
+ * @brief Checks teh function sent and exits if something fails.
+ * This provides clarity with the code and being able to test functions that return errors.
+ * 
  * @param check_this the function or value to complete due to critical operations
  * @param error_msg message to display before returning value
  * @param value is the value to test for

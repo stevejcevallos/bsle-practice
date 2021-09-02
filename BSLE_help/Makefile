@@ -1,5 +1,5 @@
 #*- MakeFile -*-
-CC=gcc-10
+CC=gcc
 CFLAGS= -Wall -pthread -g
 
 _OBJ = server_network.o threadpool.o 
