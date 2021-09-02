@@ -1,35 +1,5 @@
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <arpa/inet.h>
-#include <netinet/in.h>
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <stdbool.h>
-#include <unistd.h>
-#include <signal.h>
-#include <fcntl.h>
-#include <errno.h>
+#include "../INCLUDE/server_network.h"
 
-#include "../INCLUDE/threadpool.h"
-
-
-#define PORT_NUM 2000
-#define MAX_CLIENTS 20
-
-static volatile int running = 1;
-
-/**
- * @brief Signal handler
- *
- * @param fd is the accepted socket
- * @param buffer is the caracter * with the message being recieved
- * @param buffer_size is the size of the expected message
- *
- * REF: https://stackoverflow.com/questions/4217037/catch-ctrl-c-in-c
- *
- * @return: None
-*/
 void signal_handler(int sig)
 {
     if(sig == SIGINT)
@@ -38,17 +8,7 @@ void signal_handler(int sig)
     }
 }
 
-/**
- * @brief Recieve Messages byte by byte from any connections
- * and checks the last byte to see if it is a NULL BYTE
- *
- * @param fd is the accepted socket
- * @param buffer is the caracter * with the message being recieved
- * @param buffer_size is the size of the expected message
- *
- * @return: 0 is a Sucessful connections, -1 is Failed connection
-*/
-static bool get_message(int fd, char *buffer, size_t *buffer_size)
+static int get_message(int fd, char *buffer, size_t *buffer_size)
 {
     char * message = buffer;
     size_t count = 0;
@@ -58,7 +18,7 @@ static bool get_message(int fd, char *buffer, size_t *buffer_size)
         if ('\0' == *message)
         {
             *buffer_size = count;
-            return true;
+            return 0;
         }
         message++;
     }
@@ -66,20 +26,38 @@ static bool get_message(int fd, char *buffer, size_t *buffer_size)
     printf("buffer is |%s|\n", buffer);
     printf("message is |%s|\n", message);
     printf("MY SIZE: %ld \n", count);
-    return false;
-
+    return -1;
 }
 
-/**
- * @brief Test the given functions/value return values, prints error message on failue
- *
- * @param check_this the function or value to complete due to critical operations
- * @param error_msg message to display before returning value
- * @param value is the value to test for
- *
- *
- * @return: function return operation on sucess, -1 on failue
-*/
+static int send_message(int fd, char * message_to_send, size_t *message_size)
+{
+    int total_bytes = 0;
+    int bytes_left = *message_size;
+    int bytes_sent = 0;
+
+    while(total_bytes < *message_size)
+    {
+        bytes_sent = send(fd, message_to_send + total_bytes, bytes_left, 0);
+
+        if(bytes_sent == -1)
+        {
+            break;
+        }
+
+        total_bytes += bytes_sent;
+        bytes_left -= bytes_sent;
+    }
+
+    *message_size = total_bytes;
+
+    if(bytes_sent == -1)
+    {
+        return -1;
+    }
+
+    return 0;
+}
+
 int check_functionality_server(int check_this, char * error_msg, int value)
 {
     if(check_this == value)
@@ -90,15 +68,6 @@ int check_functionality_server(int check_this, char * error_msg, int value)
     return check_this;
 }
 
-/**
- * @brief Sets up the server Socket with all the correct values
- *
- * @param None
- *
- * REF: https://jameshfisher.com/2017/04/05/set_socket_nonblocking/
- *
- * @return: Int value with the socket connection, or -1 on failue
-*/
 int set_up_server_socket(void)
 {
     //Socket Varaibles
@@ -141,13 +110,6 @@ int set_up_server_socket(void)
     return server_socket;
 }
 
-/**
- * @brief Handles the connection of the TCP server. Processes the messages to send back.
- *
- * @param thread_client_socket contains the socket FD to be able to use the connections
- *
- * @return 1 if fail and 0 on sucess
-*/
 void * handle_connection(void * thread_client_socket)
 {
     int client_socket = *((int*) thread_client_socket);
@@ -157,12 +119,12 @@ void * handle_connection(void * thread_client_socket)
 
     //Send Message to Client Stating the Connection has been established
     char * connected_message = "Connection Established! Welcome!";
-    int message_size = strlen(connected_message);
-    if(send(client_socket, connected_message, message_size, 0) < 0)
+    size_t message_size = strlen(connected_message);
+    if(-1 == send_message(client_socket, connected_message, &message_size))
     {
-        puts("In server_network.c Failed to Send Message to Client");
+        printf("In server_network.c Failed Send entire message to Client, Sent %ld \n" ,
+            message_size);
         close(client_socket);
-        return (void *)1;
     }
 
     /***************** CHANGE CLIENT MESSAGE SIZE BASED ON PROJECT ****************/
@@ -171,7 +133,7 @@ void * handle_connection(void * thread_client_socket)
     char client_response[65535] = {0};
 
     //Calls the get message Function to read in bit by bit
-    if(get_message(client_socket, client_response, &client_response_size) == false)
+    if(-1 == get_message(client_socket, client_response, &client_response_size))
     {
         puts("In server_network.c Failed to Recv the Entire Message from the Client");
         close(client_socket);
@@ -186,10 +148,7 @@ void * handle_connection(void * thread_client_socket)
     return (void *)0;
 }
 
-/**
- * @brief Sets up the entire TCP Socket Connections. Allows Clients to connect to the server
- * @return: 0 is a Sucessful connections, 1 is Failed connection
-*/
+
 int main()
 {
     int client_socket;
