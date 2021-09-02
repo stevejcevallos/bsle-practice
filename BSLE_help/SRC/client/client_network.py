@@ -19,11 +19,18 @@ def client_network_connection(ip_address, port):
         #Add Functions to Deserialize and Process the Message for the Client
         client_message = input("\t Enter a Message: ")
         client_message_bytes = client_message.encode("utf-8")
-        client_message_length = len(client_message)
 
-        print(struct.pack("d", client_message_length))
+        client_message_length = len(client_message_bytes)
+        client_message_length_bytes = struct.pack("H", client_message_length)
 
-        #client_socket.send(server_connected_messgage.encode())
+        print(client_message_length_bytes)
+        print(client_message_bytes)
+
+        client_response = b"".join([client_message_length_bytes, client_message_bytes])
+        
+        print(client_response)
+
+        client_socket.send(client_response)
 
 def main():
     #Proppts User to Enter the Public IP of the Server
