@@ -8,6 +8,7 @@ void signal_handler(int sig)
     }
 }
 
+/*
 static int get_message(int fd, char *buffer, size_t *buffer_size)
 {
     char * message = buffer;
@@ -23,11 +24,37 @@ static int get_message(int fd, char *buffer, size_t *buffer_size)
         message++;
     }
     
-    //printf("MESSAGE: %s \n", client_response);
-    //printf("SIZE: %ld \n", client_response_size);
+    printf("MESSAGE: %s \n", buffer);
+    printf("SIZE: %ln \n", buffer_size);
 
     return -1;
 }
+*/
+
+static int get_message(int fd, char * message_recv, size_t *message_size)
+{
+    int total_bytes_recv = 0;
+    int bytes_recv = 0;
+    int message_packet_size = 512;
+
+    //Change to timeout after 10 secconds
+    while(1)
+    {
+        bytes_recv = recv(fd, message_recv, 512, 0);
+        if(bytes_recv < 0)
+        {
+            break;
+        }
+        else
+        {
+            total_bytes_recv += bytes_recv;
+            printf("%s \n", message_recv);
+        }
+    }
+
+    return total_bytes_recv;
+}
+
 
 static int send_message(int fd, char * message_to_send, size_t *message_size)
 {
@@ -63,7 +90,7 @@ int check_functionality_server(int check_this, char * error_msg, int value)
     if(check_this == value)
     {
         perror(error_msg);
-        return -1;
+        return SERVER_FAILED;
     }
     return check_this;
 }
@@ -75,17 +102,19 @@ int set_up_server_socket(void)
     int flags = 0;
     int opt_val = 1;
 
+    int return_check = 0;
+
     //Creating the TCP Socket to Connect to the Server
     server_socket = check_functionality_server(socket(AF_INET, SOCK_STREAM, 0),
-        "In server_network.c Failed to set the Network Socket ", -1);
+        "In server_network.c Failed to set the Network Socket ", SERVER_FAILED);
 
     //Set Server to Non-Blocking
     flags = check_functionality_server(fcntl(server_socket, F_GETFL, 0),
-        "In server_network.c Failed to get the flags on Socket", -1);
-
+        "In server_network.c Failed to get the flags on Socket", SERVER_FAILED);
+    
     //Sets Up Non Blocking
     check_functionality_server(fcntl(server_socket, F_SETFL, flags | O_NONBLOCK),
-        "In server_network.c Failed to set socket as Non-Blocking", -1);
+        "In server_network.c Failed to set socket as Non-Blocking", SERVER_FAILED);
 
     //Setting the Server Socket family to IPv4 and Setting specified Port for server to be 2000
     struct sockaddr_in server_addr = {0};
@@ -94,16 +123,32 @@ int set_up_server_socket(void)
     server_addr.sin_addr.s_addr = INADDR_ANY;
 
     //Setting the Socket OPTs to the apporpriate setting to reuse the Network
-    check_functionality_server(setsockopt(server_socket, SOL_SOCKET, SO_REUSEADDR, &opt_val, sizeof(opt_val)),
-        "In server_network.c Failed to set socket opt", -1);
+    return_check = check_functionality_server(setsockopt(server_socket, SOL_SOCKET, SO_REUSEADDR, &opt_val, sizeof(opt_val)),
+        "In server_network.c Failed to set socket opt", SERVER_FAILED);
+    
+    if(SERVER_FAILED == return_check)
+    {
+        return SERVER_FAILED;
+    }
 
     //Bind the specified socket to the created Scoket Addr
-    check_functionality_server(bind(server_socket, (struct sockaddr *) &server_addr, sizeof(server_addr)),
-        "In server_network.c  Failed to Bind the Network", -1);
+    return_check = check_functionality_server(bind(server_socket, (struct sockaddr *) &server_addr, sizeof(server_addr)),
+        "In server_network.c Failed to Bind the Network", SERVER_FAILED);
+
+    if(SERVER_FAILED == return_check)
+    {
+        return SERVER_FAILED;
+    }
 
     //Beginning to Listen for Pythonic TCP Connections
-    check_functionality_server(listen(server_socket, MAX_CLIENTS),
-        "In server_network.c  Failed to Listen to Any Connections", -1);
+    return_check = check_functionality_server(listen(server_socket, MAX_CLIENTS),
+        "In server_network.c  Failed to Listen to Any Connections", SERVER_FAILED);
+    
+    if(SERVER_FAILED == return_check)
+    {
+        return SERVER_FAILED;
+    }
+
 
     puts("Server Established");
 
@@ -137,12 +182,18 @@ void handle_connection(void * args)
     size_t client_response_size = 65535;
     char client_response[65535] = {0};
 
-    //Calls the get message Function to read in bit by bit
+    /*Calls the get message Function to read in bit by bit
     if(-1 == get_message(client_socket, client_response, &client_response_size))
     {
         puts("In server_network.c Failed to Recv the Entire Message from the Client");
         close(client_socket);
     }
+    */
+
+    recv(client_socket, client_response, client_response_size, 0);
+    
+    printf("Messaged Size from Client %ld \n", client_response_size);
+    printf("Messaged Recieved from Client %s \n", client_response);
 
     close(client_socket);
 }
@@ -159,7 +210,14 @@ int main()
     threadpool_t * server_threadpool;
 
     int server_socket = check_functionality_server(set_up_server_socket(),
-        "In server_network.c Failed to Set Up Server", -1);
+        "In server_network.c Failed to Set Up Server", SERVER_FAILED);
+    
+    if(SERVER_FAILED == server_socket)
+    {
+        perror("Failed to Set up Server");
+        exit(EXIT_FAILURE);
+    }
+    
 
     server_threadpool = tpool_create(MAX_CLIENTS);
 
@@ -174,7 +232,7 @@ int main()
     {
         puts("In server_network.c Signal handler did not work");
         close(server_socket);
-        return EXIT_FAILURE;
+        exit(EXIT_FAILURE);
     }
     puts("Listening for Connections");
 
@@ -213,8 +271,10 @@ int main()
             }
         }
     }
+
     puts("Closing Connection");
     tpool_destroy(server_threadpool);
+    close(client_connection);
     close(server_socket);
     exit(EXIT_SUCCESS);
 }

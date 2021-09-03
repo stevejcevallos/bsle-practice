@@ -13,16 +13,17 @@
 
 #include "../INCLUDE/threadpool.h"
 
+#define PORT_NUM 2000
+#define MAX_CLIENTS 20
+#define SERVER_FAILED -1
+
+static volatile int running = 1;
+
 typedef struct _connection
 {
     int client_socket;
     struct sockaddr_in client_address;
 }connection;
-
-#define PORT_NUM 2000
-#define MAX_CLIENTS 20
-
-static volatile int running = 1;
 
 /**
  * @brief Signal handler
@@ -38,13 +39,14 @@ static volatile int running = 1;
 void signal_handler(int sig);
 
 /**
- * @brief Recieve Messages byte by byte from any connections
- * and checks the last byte to see if it is a NULL BYTE
+ * @brief Recieve Messages entirly from the client
  *
  * @param fd is the accepted socket
  * @param buffer is the caracter * with the message being recieved
  * @param buffer_size is the size of the expected message
  *
+ * REF: https://www.binarytides.com/receive-full-data-with-recv-socket-function-in-c/
+ * 
  * @return: 0 is a Sucessful connections, -1 is Failed connection
 */
 static int get_message(int fd, char *buffer, size_t *buffer_size);
