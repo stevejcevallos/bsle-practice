@@ -16,6 +16,7 @@
 #define PORT_NUM 2000
 #define MAX_CLIENTS 20
 #define SERVER_FAILED -1
+#define CHUNK_SIZE 1024
 
 static volatile int running = 1;
 
@@ -49,7 +50,7 @@ void signal_handler(int sig);
  * 
  * @return: 0 is a Sucessful connections, -1 is Failed connection
 */
-static int get_message(int fd, char *buffer, size_t *buffer_size);
+char * get_message(int fd, int message_size);
 
 /**
  * @brief Sends the entiriy of the buffer to the socket. 

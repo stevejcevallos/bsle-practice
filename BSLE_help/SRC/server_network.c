@@ -31,30 +31,57 @@ static int get_message(int fd, char *buffer, size_t *buffer_size)
 }
 */
 
-static int get_message(int fd, char * message_recv, size_t *message_size)
+char * get_message(int fd, int message_size)
 {
+    if (0 > message_size)
+    {
+        return NULL;
+    }
+
     int total_bytes_recv = 0;
     int bytes_recv = 0;
-    int message_packet_size = 512;
+    int message_packet_size = CHUNK_SIZE;
+
+    char * message_recv = calloc(message_size + 1, sizeof(char));
+
+    if(NULL == message_recv)
+    {
+        perror("Failed to Allocate for Messaged Revieced");
+        return NULL;
+    }
+
+    if(message_size < CHUNK_SIZE)
+    {
+        message_packet_size = message_size;
+    }
 
     //Change to timeout after 10 secconds
-    while(1)
+    while(total_bytes_recv != message_size)
     {
-        bytes_recv = recv(fd, message_recv, 512, 0);
+
+        bytes_recv = recv(fd, message_recv + total_bytes_recv, message_packet_size, 0);
+
         if(bytes_recv < 0)
         {
+            perror("Failed to Recv");
+            free(message_recv);
+            message_recv = NULL;
             break;
         }
         else
         {
             total_bytes_recv += bytes_recv;
-            printf("%s \n", message_recv);
+            
+            //Ensure the buffer is not read over the size
+            if((message_size - total_bytes_recv) < CHUNK_SIZE)
+            {
+                message_packet_size = message_size - total_bytes_recv;
+            }
         }
     }
 
-    return total_bytes_recv;
+    return message_recv;
 }
-
 
 static int send_message(int fd, char * message_to_send, size_t *message_size)
 {
@@ -179,22 +206,35 @@ void handle_connection(void * args)
 
     /***************** CHANGE CLIENT MESSAGE SIZE BASED ON PROJECT ****************/
     // Curently get_messages checks if the last value is a null byte
-    size_t client_response_size = 65535;
-    char client_response[65535] = {0};
-
-    /*Calls the get message Function to read in bit by bit
-    if(-1 == get_message(client_socket, client_response, &client_response_size))
+    char * opt_code = get_message(client_socket, 1);
+    //uint16_t name_length = be16toh(*((uint16_t *) client_response+1));
+    if(NULL == opt_code)
     {
-        puts("In server_network.c Failed to Recv the Entire Message from the Client");
+        puts("In server_network.c Failed to Get Message from the Client");
+        free(opt_code);
         close(client_socket);
     }
-    */
 
-    recv(client_socket, client_response, client_response_size, 0);
+    printf("Messaged Recieved from Client %d \n", (int) opt_code[0]);
+
+    // Curently get_messages checks if the last value is a null byte
+    char * recv_message_length = get_message(client_socket, 2);
+    uint16_t message_length = be16toh(*((uint16_t *) recv_message_length));
+    //uint16_t name_length = be16toh(*((uint16_t *) client_response+1));
+    if(NULL == recv_message_length)
+    {
+        puts("In server_network.c Failed to Get Message from the Client");
+        free(opt_code);
+        close(client_socket);
+    }
+
+    printf("Messaged Recieved from Client %d \n", message_length);
+
     
-    printf("Messaged Size from Client %ld \n", client_response_size);
-    printf("Messaged Recieved from Client %s \n", client_response);
 
+
+    free(opt_code);
+    free(recv_message_length);
     close(client_socket);
 }
 

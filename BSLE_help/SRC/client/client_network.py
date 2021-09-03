@@ -21,12 +21,17 @@ def client_network_connection(ip_address, port):
         client_message_bytes = client_message.encode("utf-8")
 
         client_message_length = len(client_message_bytes)
-        client_message_length_bytes = struct.pack("H", client_message_length)
+        client_message_length_bytes = struct.pack(">H", client_message_length)
 
         print(client_message_length_bytes)
         print(client_message_bytes)
+        server_code = 1
+        server_code_bytes = struct.pack(">B", server_code)
 
-        client_response = b"".join([client_message_length_bytes, client_message_bytes])
+        message_format = [server_code_bytes, client_message_length_bytes, client_message_bytes]
+
+
+        client_response = b"".join(message_format)
         
         print(client_response)
 
