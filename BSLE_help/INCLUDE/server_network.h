@@ -88,7 +88,7 @@ int set_up_server_socket(void);
  *
  * @return 1 if fail and 0 on sucess
 */
-void * handle_connection(void * thread_client_socket);
+void handle_connection(void * thread_client_socket);
 
 /**
  * @brief Sets up the entire TCP Socket Connections. Allows Clients to connect to the server

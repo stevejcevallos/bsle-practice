@@ -63,7 +63,7 @@ int check_functionality_server(int check_this, char * error_msg, int value)
     if(check_this == value)
     {
         perror(error_msg);
-        exit(EXIT_FAILURE);
+        return -1;
     }
     return check_this;
 }
@@ -110,9 +110,9 @@ int set_up_server_socket(void)
     return server_socket;
 }
 
-void * handle_connection(void * thread_client_socket)
+void handle_connection(void * args)
 {
-    int client_socket = *((int*) thread_client_socket);
+    int client_socket = *((int*) args);
 
     printf("Thread {%ld} Running Connection \n", pthread_self());
     printf("SOCK: %d \n", client_socket);
@@ -137,18 +137,17 @@ void * handle_connection(void * thread_client_socket)
     {
         puts("In server_network.c Failed to Recv the Entire Message from the Client");
         close(client_socket);
-        return (void *)1;
     }
 
     close(client_socket);
-
-    return (void *)0;
 }
 
 
 int main()
 {
-    int client_socket;
+    int client_connection = 0;
+    int * acceped_connection = NULL;
+
     struct sockaddr_in client_addr = {0};
     socklen_t client_len = 0;
     threadpool_t * server_threadpool;
@@ -171,32 +170,40 @@ int main()
         close(server_socket);
         return EXIT_FAILURE;
     }
-    puts("Listening for New Connections");
+    puts("Listening for Connections");
 
     //Keeps the Server Open to accept connections
     while(running)
     {
-        char client_ip[INET_ADDRSTRLEN];
-
         //Accepts Connections that are incomming, Prints IP with valid connection
-        client_socket = accept(server_socket, (struct sockaddr *) &client_addr, &client_len);
-        if(-1 == client_socket)
+        char client_ip[INET_ADDRSTRLEN];
+        
+        client_connection = accept(server_socket, (struct sockaddr *) &client_addr, &client_len);
+        if(-1 == client_connection)
         {
             //Checks if the socket is just being blocked
-            if(errno != EWOULDBLOCK)
+            if(errno != EWOULDBLOCK || errno != EAGAIN)
             {
                 puts("In server_network.c  Failed to Accept Connections from Clients");
-                close(server_socket);
-                return -1;
+                close(client_connection);
             }
             continue;
         }
         else
         {
+            acceped_connection = malloc(sizeof(int *));
             printf("Accepted {%s} Adding Work to Thread\n", inet_ntop(AF_INET, &client_addr.sin_addr.s_addr,
                 client_ip, INET_ADDRSTRLEN));
-                    printf("SOCK: %d \n", client_socket);
-            tpool_add_work(server_threadpool, &handle_connection, &client_socket);
+            printf("SOCK: %d \n", client_connection);
+
+            acceped_connection = &client_connection;
+
+
+            if(false == tpool_add_work(server_threadpool, handle_connection, &acceped_connection))
+            {
+                puts("In server_network.c  Failed to Add work to threadpool");
+                close(client_connection);
+            }
         }
     }
     puts("Closing Connection");

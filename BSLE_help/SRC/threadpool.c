@@ -254,6 +254,7 @@ bool tpool_add_work(threadpool_t *pool, thread_func_t func, void *args)
     }
 
     work = tpool_work_create(func, args);
+    
     if(NULL == work)
     {
         return false;

@@ -33,7 +33,7 @@ client:
 	python3 SRC/client/client_network.py $(IP) $(PORT)
 
 valgrind: all
-	valgrind --leak-check=full --show-leak-kinds=all BIN/capstone
+	valgrind --leak-check=full --show-leak-kinds=all -s BIN/capstone
 
 test: $(OBJ)
 	$(CC) $(CFLAGS) -lcunit -o Test $^ Tests/main_tests.c Tests/general_tests.c

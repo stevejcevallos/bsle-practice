@@ -56,7 +56,8 @@ int change_password_in_files(FILE * fp, uint16_t test_value_length, char * test_
 
     puts("File Opened");
 
-    while(EOF != (bytes_read = getline(&file_contents, &buffer_size, fp)))
+    bytes_read = getline(&file_contents, &buffer_size, fp);
+    while(EOF != bytes_read)
     {
         printf("\nByte Size at: %d \n", bytes_read);
         printf("BUFF %s \n", file_contents);
@@ -100,6 +101,8 @@ int change_password_in_files(FILE * fp, uint16_t test_value_length, char * test_
                 fprintf(fp,"%d,%*s", new_password_length, old_password_length, new_password);
             }
         }
+
+        bytes_read = getline(&file_contents, &buffer_size, fp);
     }
 
     free(file_contents);
