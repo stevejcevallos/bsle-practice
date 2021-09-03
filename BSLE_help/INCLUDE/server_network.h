@@ -13,7 +13,11 @@
 
 #include "../INCLUDE/threadpool.h"
 
-
+typedef struct _connection
+{
+    int client_socket;
+    struct sockaddr_in client_address;
+}connection;
 
 #define PORT_NUM 2000
 #define MAX_CLIENTS 20

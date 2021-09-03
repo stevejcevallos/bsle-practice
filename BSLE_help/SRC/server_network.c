@@ -112,9 +112,14 @@ int set_up_server_socket(void)
 
 void handle_connection(void * args)
 {
-    int client_socket = *((int*) args);
+    connection * thread_connection = (connection *)args;
+    struct sockaddr_in client_address = thread_connection->client_address;
+    int client_socket = thread_connection->client_socket;
+    char client_ip[INET_ADDRSTRLEN];
 
     printf("Thread {%ld} Running Connection \n", pthread_self());
+    printf("Accepted {%s} Adding Work to Thread\n", inet_ntop(AF_INET, &client_address.sin_addr.s_addr,
+                client_ip, INET_ADDRSTRLEN));
     printf("SOCK: %d \n", client_socket);
 
     //Send Message to Client Stating the Connection has been established
@@ -146,7 +151,8 @@ void handle_connection(void * args)
 int main()
 {
     int client_connection = 0;
-    int * acceped_connection = NULL;
+    //int * acceped_connection = NULL;
+    connection accepted_connection = {0};
 
     struct sockaddr_in client_addr = {0};
     socklen_t client_len = 0;
@@ -191,15 +197,16 @@ int main()
         }
         else
         {
-            acceped_connection = malloc(sizeof(int *));
+            //acceped_connection = malloc(sizeof(int *));
             printf("Accepted {%s} Adding Work to Thread\n", inet_ntop(AF_INET, &client_addr.sin_addr.s_addr,
                 client_ip, INET_ADDRSTRLEN));
             printf("SOCK: %d \n", client_connection);
 
-            acceped_connection = &client_connection;
+            //acceped_connection = &client_connection;
+            accepted_connection.client_socket = client_connection;
+            accepted_connection.client_address = client_addr;
 
-
-            if(false == tpool_add_work(server_threadpool, handle_connection, &acceped_connection))
+            if(false == tpool_add_work(server_threadpool, handle_connection, (void *) &accepted_connection))
             {
                 puts("In server_network.c  Failed to Add work to threadpool");
                 close(client_connection);
