@@ -8,30 +8,7 @@ void signal_handler(int sig)
     }
 }
 
-/*
-static int get_message(int fd, char *buffer, size_t *buffer_size)
-{
-    char * message = buffer;
-    size_t count = 0;
-    while(count < *buffer_size && recv(fd, message, 1, 0) == 1)
-    {
-        count++;
-        if ('\0' == *message)
-        {
-            *buffer_size = count;
-            return 0;
-        }
-        message++;
-    }
-    
-    printf("MESSAGE: %s \n", buffer);
-    printf("SIZE: %ln \n", buffer_size);
-
-    return -1;
-}
-*/
-
-char * get_message(int fd, int message_size)
+char * get_message(int socket, int message_size)
 {
     if (0 > message_size)
     {
@@ -41,6 +18,12 @@ char * get_message(int fd, int message_size)
     int total_bytes_recv = 0;
     int bytes_recv = 0;
     int message_packet_size = CHUNK_SIZE;
+    int ret_time = 0;
+    struct pollfd fd;
+
+    fd.fd = socket;
+    fd.events = POLLIN;
+    ret_time = poll(&fd, 1, RECV_TIMEOUT);
 
     char * message_recv = calloc(message_size + 1, sizeof(char));
 
@@ -55,17 +38,26 @@ char * get_message(int fd, int message_size)
         message_packet_size = message_size;
     }
 
-    //Change to timeout after 10 secconds
+    //Check if Poll Call Failed
     while(total_bytes_recv != message_size)
     {
+        if (0 > ret_time)
+        {
+            perror("poll() Failed");
+            break;
+        }
 
-        bytes_recv = recv(fd, message_recv + total_bytes_recv, message_packet_size, 0);
+        if (0 == ret_time)
+        {
+            perror("Timeout");
+            break;
+        }
+
+        bytes_recv = recv(socket, message_recv + total_bytes_recv, message_packet_size, 0);
 
         if(bytes_recv < 0)
         {
             perror("Failed to Recv");
-            free(message_recv);
-            message_recv = NULL;
             break;
         }
         else
@@ -224,25 +216,23 @@ void handle_connection(void * args)
     if(NULL == recv_message_length)
     {
         puts("In server_network.c Failed to Get Message from the Client");
-        free(opt_code);
+        free(recv_message_length);
         close(client_socket);
     }
 
     printf("Messaged Recieved from Client %d \n", message_length);
 
-    
-
-
     free(opt_code);
     free(recv_message_length);
+    
     close(client_socket);
 }
 
 
 int main()
 {
+    //Sets up 
     int client_connection = 0;
-    //int * acceped_connection = NULL;
     connection accepted_connection = {0};
 
     struct sockaddr_in client_addr = {0};
@@ -295,12 +285,10 @@ int main()
         }
         else
         {
-            //acceped_connection = malloc(sizeof(int *));
             printf("Accepted {%s} Adding Work to Thread\n", inet_ntop(AF_INET, &client_addr.sin_addr.s_addr,
                 client_ip, INET_ADDRSTRLEN));
             printf("SOCK: %d \n", client_connection);
 
-            //acceped_connection = &client_connection;
             accepted_connection.client_socket = client_connection;
             accepted_connection.client_address = client_addr;
 
@@ -313,6 +301,7 @@ int main()
     }
 
     puts("Closing Connection");
+    tpool_wait(server_threadpool);
     tpool_destroy(server_threadpool);
     close(client_connection);
     close(server_socket);

@@ -17,7 +17,8 @@ def client_network_connection(ip_address, port):
         print(server_response.decode())
 
         #Add Functions to Deserialize and Process the Message for the Client
-        client_message = input("\t Enter a Message: ")
+        #client_message = input("\t Enter a Message: ")
+        client_message = "Hello"
         client_message_bytes = client_message.encode("utf-8")
 
         client_message_length = len(client_message_bytes)

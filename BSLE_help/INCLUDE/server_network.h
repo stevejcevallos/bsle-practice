@@ -10,6 +10,7 @@
 #include <signal.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <poll.h>
 
 #include "../INCLUDE/threadpool.h"
 
@@ -17,6 +18,7 @@
 #define MAX_CLIENTS 20
 #define SERVER_FAILED -1
 #define CHUNK_SIZE 1024
+#define RECV_TIMEOUT 10000
 
 static volatile int running = 1;
 
@@ -40,17 +42,17 @@ typedef struct _connection
 void signal_handler(int sig);
 
 /**
- * @brief Recieve Messages entirly from the client
+ * @brief Recieve Messages from the client and ensure the entire message is recieved
  *
- * @param fd is the accepted socket
- * @param buffer is the caracter * with the message being recieved
- * @param buffer_size is the size of the expected message
+ * @param socket is the accepted socket
+ * @param messsage_size is the size of the expected message
  *
  * REF: https://www.binarytides.com/receive-full-data-with-recv-socket-function-in-c/
+ * REF: https://stackoverflow.com/questions/2876024/linux-is-there-a-read-or-recv-from-socket-with-timeout
  * 
  * @return: 0 is a Sucessful connections, -1 is Failed connection
 */
-char * get_message(int fd, int message_size);
+char * get_message(int socket, int message_size);
 
 /**
  * @brief Sends the entiriy of the buffer to the socket. 
